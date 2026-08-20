@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Primary Meta Tags -->
+  <title>🏍️ HERORIDE | Personal Vehicle &amp; Bike Maintenance Dashboard</title>
+  <meta name="title" content="🏍️ HERORIDE | Personal Vehicle & Bike Maintenance Dashboard">
+  <meta name="description" content="All-in-one personal bike management dashboard. Track service dates, insurance renewal, PUC expiry, fuel efficiency, maintenance records, and expense analytics in one place.">
+  <meta name="keywords" content="Bike Maintenance, Vehicle Dashboard, Hero Xtreme, Service Reminders, Insurance Expiry, PUC Countdown, Mileage Calculator, Bike Care">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="HERORIDE — Smart Bike Maintenance Dashboard">
+  <meta property="og:description" content="Never miss service dates, insurance renewals, or PUC expiry. Keep your bike in optimal condition.">
+  <meta property="og:image" content="images/project-bikecare.svg">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css"> 
+</head>
+<body>
+
+  <!-- =========================================================================
+       1. NAVIGATION BAR
+       ========================================================================= -->
+  <header class="header">
+    <div class="container">
+      <nav class="navbar" aria-label="Dashboard Navigation">
+        
+        <!-- Brand Logo -->
+        <a href="#overview" class="brand-logo" aria-label="HERORIDE Home">
+          <span>🏍️ HERORIDE</span>
+          <span class="brand-badge">Dashboard</span>
+        </a>
+
+        <!-- Navigation Links -->
+        <div class="nav-links">
+          <a href="#overview" class="nav-link active">Overview</a>
+          <a href="#maintenance" class="nav-link">Maintenance</a>
+          <a href="#expiry" class="nav-link">Documents &amp; PUC</a>
+          <a href="#calculators" class="nav-link">Calculators</a>
+          <a href="#history" class="nav-link">Service History</a>
+        </div>
+
+        <!-- Right: Vehicle Selector, Booking CTA & Theme Toggle -->
+        <div class="nav-actions">
+          
+          <!-- Vehicle Selector -->
+          <select id="vehicle-switcher" class="vehicle-selector-dropdown" aria-label="Select Vehicle">
+            <!-- Populated dynamically via JS -->
+          </select>
+
+          <!-- Book Service Trigger Button -->
+          <button class="btn btn-primary btn-sm trigger-book-service">
+            Book Service
+          </button>
+
+          <!-- Theme Switcher (Dark / Light) -->
+          <button class="theme-btn" id="theme-toggle" aria-label="Toggle Theme" title="Toggle theme">
+            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+
+          <!-- Mobile Toggle -->
+          <button class="mobile-toggle" id="mobile-toggle" aria-label="Open Navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+        </div>
+
+      </nav>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       MAIN DASHBOARD CONTENT
+       ========================================================================= -->
+  <main class="dashboard-wrapper">
+    <div class="container">
+
+      <!-- Problem Statement Highlight Banner -->
+      <section class="problem-banner" aria-label="Dashboard Purpose">
+        <div class="problem-banner-content">
+          <div class="problem-banner-icon">💡</div>
+          <div class="problem-banner-text">
+            <h4>Smart Vehicle Management</h4>
+            <p>
+              Bike owners often forget their service dates, insurance renewal, pollution certificate, oil changes, and maintenance. HERORIDE brings all this critical information into one live dashboard.
+            </p>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="trigger-add-bike">
+          + Add Another Bike
+        </button>
+      </section>
+
+      <!-- =====================================================================
+           HERO SECTION: CURRENT VEHICLE TELEMETRY CARD (Hero Xtreme)
+           ===================================================================== -->
+      <section class="hero-telemetry-card" id="overview">
+        
+        <!-- Header Info -->
+        <div class="telemetry-header">
+          <div class="bike-title-group">
+            <div class="bike-avatar-icon">🏍️</div>
+            <div>
+              <h1 class="bike-name-text" id="display-bike-name">Hero Xtreme</h1>
+              <div class="bike-reg-badge" id="display-bike-reg">MH-12-AB-4509</div>
+            </div>
+          </div>
+
+          <div class="telemetry-actions">
+            <button class="btn btn-secondary btn-sm" id="update-odometer-btn">
+              ⚡ Update Odometer
+            </button>
+            <button class="btn btn-primary trigger-book-service">
+              Book Service
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Core Metrics Grid -->
+        <div class="telemetry-metrics-grid">
+          
+          <!-- Metric 1: Vehicle Health Score -->
+          <div class="metric-card">
+            <div class="metric-label">
+              <span>Vehicle Health</span>
+              <span>🟢</span>
+            </div>
+            <div class="metric-value highlight-health" id="metric-health-val">92% 🟢</div>
+            <div class="metric-meta good">
+              <span>✓ All critical checks passed</span>
+            </div>
+          </div>
+
+          <!-- Metric 2: Next Service -->
+          <div class="metric-card">
+            <div class="metric-label">
+              <span>Next Service</span>
+              <span>🔧</span>
+            </div>
+            <div class="metric-value" id="metric-service-val">1,250 KM remaining</div>
+            <div class="metric-meta warn" id="metric-service-meta">
+              <span>Due at 19,700 KM or in 18 days</span>
+            </div>
+          </div>
+
+          <!-- Metric 3: Fuel Efficiency -->
+          <div class="metric-card">
+            <div class="metric-label">
+              <span>Fuel Efficiency</span>
+              <span>⛽</span>
+            </div>
+            <div class="metric-value" id="metric-mileage-val">52 KM/L</div>
+            <div class="metric-meta good">
+              <span>Optimal economy range</span>
+            </div>
+          </div>
+
+          <!-- Metric 4: Total Distance -->
+          <div class="metric-card">
+            <div class="metric-label">
+              <span>Total Distance</span>
+              <span>🛣️</span>
+            </div>
+            <div class="metric-value" id="metric-distance-val">18,450 KM</div>
+            <div class="metric-meta">
+              <span>Odometer verified</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Telemetry Action CTA Bar -->
+        <div class="telemetry-cta-bar">
+          <div class="cta-bar-info">
+            <span class="icon">🔔</span>
+            <div>
+              <h4>Upcoming Scheduled Maintenance</h4>
+              <p>Periodic 6th service due soon. Includes engine oil flush, brake inspection, and air filter cleaning.</p>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-lg trigger-book-service">
+            [ Book Service ]
+          </button>
+        </div>
+
+      </section>
+
+      <!-- =====================================================================
+           2-COLUMN SECTION: MAINTENANCE CHECKLIST & EXPIRY COUNTDOWNS
+           ===================================================================== -->
+      <div class="dashboard-main-grid">
+        
+        <!-- Left Card: Maintenance Checklist -->
+        <section class="dash-card" id="maintenance">
+          <div class="dash-card-header">
+            <h3 class="dash-card-title">
+              <span>🔧</span> Maintenance Status
+            </h3>
+            <span class="checklist-status-pill ok">Health: 92%</span>
+          </div>
+
+          <div class="maintenance-checklist" id="maintenance-checklist-list">
+            <!-- Populated dynamically via JS:
+                 ✓ Engine Oil
+                 ✓ Brake Check
+                 ⚠ Tyre Replacement
+                 ✓ Battery
+                 ✓ Chain Lubrication
+                 ✓ Air Filter
+            -->
+          </div>
+        </section>
+
+        <!-- Right Card: Expiry Countdowns (Insurance & PUC) -->
+        <section class="dash-card" id="expiry">
+          <div class="dash-card-header">
+            <h3 class="dash-card-title">
+              <span>📄</span> Compliance &amp; Expiry Countdowns
+            </h3>
+            <span class="checklist-status-pill warn">2 Actions Due</span>
+          </div>
+
+          <!-- Live Expiry Clocks Grid -->
+          <div class="expiry-countdown-grid">
+            
+            <!-- Insurance Expiry Card -->
+            <div class="expiry-card warn-border">
+              <div class="expiry-header">
+                <span>🛡️ Insurance</span>
+                <span class="expiry-badge warn">Renew Soon</span>
+              </div>
+              <h4>Insurance Expiry</h4>
+              <div class="expiry-countdown-clock" id="ins-countdown-clock">--d --h --m</div>
+              <div class="expiry-date-sub" id="ins-expiry-date">Expires on 10 Sep 2026</div>
+              <div style="margin-top: 1rem;">
+                <a href="https://www.google.com/search?q=bike+insurance+renewal" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="width: 100%;">
+                  Renew Policy
+                </a>
+              </div>
+            </div>
+
+            <!-- PUC Expiry Card -->
+            <div class="expiry-card warn-border">
+              <div class="expiry-header">
+                <span>📄 Pollution (PUC)</span>
+                <span class="expiry-badge warn">Urgent</span>
+              </div>
+              <h4>PUC Certificate</h4>
+              <div class="expiry-countdown-clock" id="puc-countdown-clock">--d --h --m</div>
+              <div class="expiry-date-sub" id="puc-expiry-date">Expires on 28 Aug 2026</div>
+              <div style="margin-top: 1rem;">
+                <a href="https://www.google.com/search?q=puc+testing+center+near+me" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="width: 100%;">
+                  Find PUC Center
+                </a>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Digital Emergency Helpline -->
+          <div style="background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-top: 0.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
+            <div style="font-size: 0.85rem;">
+              <strong>🚨 24/7 Roadside Assistance:</strong>
+              <div style="color: var(--text-muted);">Towing &amp; Emergency Breakdown Helpline</div>
+            </div>
+            <a href="tel:18002660018" class="btn btn-outline btn-sm">Call RSA (1800)</a>
+          </div>
+
+        </section>
+
+      </div>
+
+      <!-- =====================================================================
+           CALCULATORS SECTION (Fuel/Mileage & Maintenance Cost Estimator)
+           ===================================================================== -->
+      <div class="tools-grid" id="calculators">
+        
+        <!-- Tool 1: Fuel & Mileage Calculator -->
+        <section class="calculator-card">
+          <div class="dash-card-header">
+            <h3 class="dash-card-title">
+              <span>⛽</span> Fuel &amp; Mileage Calculator
+            </h3>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label for="calc-trip-distance">Distance Traveled (KM)</label>
+              <input type="number" id="calc-trip-distance" placeholder="e.g. 260" value="260">
+            </div>
+            <div class="form-field">
+              <label for="calc-fuel-liters">Fuel Filled (Liters)</label>
+              <input type="number" id="calc-fuel-liters" placeholder="e.g. 5.0" value="5.0" step="0.1">
+            </div>
+          </div>
+
+          <div class="form-field full">
+            <label for="calc-fuel-price">Fuel Price per Liter (₹)</label>
+            <input type="number" id="calc-fuel-price" placeholder="e.g. 105" value="105">
+          </div>
+
+          <div class="calc-output-box">
+            <div class="calc-output-item">
+              <h5>Calculated Mileage</h5>
+              <p id="res-mileage">52.0 KM/L</p>
+            </div>
+            <div class="calc-output-item">
+              <h5>Running Cost</h5>
+              <p id="res-cost-per-km">₹2.02 /KM</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tool 2: Maintenance-Cost Calculator -->
+        <section class="calculator-card">
+          <div class="dash-card-header">
+            <h3 class="dash-card-title">
+              <span>💰</span> Maintenance-Cost Estimator
+            </h3>
+            <span class="checklist-status-pill ok" id="estimated-service-cost">₹1,420</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Select upcoming items to estimate total workshop expenditure:
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem;">
+            <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); cursor: pointer;">
+              <span><input type="checkbox" class="service-estimate-item" data-price="650" checked> Premium Full Synthetic 10W30 Engine Oil</span>
+              <strong style="font-family: var(--font-mono)">₹650</strong>
+            </label>
+            <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); cursor: pointer;">
+              <span><input type="checkbox" class="service-estimate-item" data-price="120" checked> OEM Oil Filter Replacement</span>
+              <strong style="font-family: var(--font-mono)">₹120</strong>
+            </label>
+            <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); cursor: pointer;">
+              <span><input type="checkbox" class="service-estimate-item" data-price="250"> Air Filter Clean / Replace</span>
+              <strong style="font-family: var(--font-mono)">₹250</strong>
+            </label>
+            <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); cursor: pointer;">
+              <span><input type="checkbox" class="service-estimate-item" data-price="200" checked> Chain Slack Adjustment &amp; O-Ring Lube</span>
+              <strong style="font-family: var(--font-mono)">₹200</strong>
+            </label>
+            <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); cursor: pointer;">
+              <span><input type="checkbox" class="service-estimate-item" data-price="450" checked> Standard Periodic Labor &amp; Wash</span>
+              <strong style="font-family: var(--font-mono)">₹450</strong>
+            </label>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- =====================================================================
+           SERVICE HISTORY SECTION
+           ===================================================================== -->
+      <section class="history-section-card" id="history">
+        <div class="dash-card-header">
+          <h3 class="dash-card-title">
+            <span>📋</span> Complete Service &amp; Maintenance History
+          </h3>
+          <button class="btn btn-secondary btn-sm" id="trigger-log-service">
+            + Log Past Service Record
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table" aria-label="Service History Log">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Odometer</th>
+                <th>Workshop / Center</th>
+                <th>Work Done</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="service-history-tbody">
+              <!-- Populated dynamically via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       MODALS
+       ========================================================================= -->
+
+  <!-- Modal 1: Book Service Simulation -->
+  <div class="modal-backdrop" id="book-service-modal" role="dialog" aria-modal="true" aria-labelledby="modal-book-title">
+    <div class="modal-window">
+      <div class="modal-head">
+        <h3 id="modal-book-title">Book Authorized Service</h3>
+        <button class="modal-close-btn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <form id="book-service-form">
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label>Selected Vehicle</label>
+            <input type="text" class="modal-auto-bike-name" value="Hero Xtreme 160R (MH-12-AB-4509)" readonly style="font-weight: 700;">
+          </div>
+
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label for="booking-center">Authorized Service Hub</label>
+            <select id="booking-center" required>
+              <option value="Hero MotoCorp Authorized Workshop">Hero MotoCorp Authorized Workshop</option>
+              <option value="Speedy Bike Care & Tuning">Speedy Bike Care &amp; Tuning</option>
+              <option value="MotoDoc Multi-Brand Garage">MotoDoc Multi-Brand Garage</option>
+            </select>
+          </div>
+
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label for="booking-service-type">Service Package</label>
+            <select id="booking-service-type" required>
+              <option value="Periodic General Service & Oil Flush">Periodic General Service &amp; Oil Flush</option>
+              <option value="Brake Overhaul & Pad Replacement">Brake Overhaul &amp; Pad Replacement</option>
+              <option value="Tyre Replacement & Balancing">Tyre Replacement &amp; Balancing</option>
+              <option value="Electrical & Battery Health Diagnosis">Electrical &amp; Battery Health Diagnosis</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label for="booking-date">Preferred Date &amp; Time</label>
+              <input type="datetime-local" id="booking-date" required>
+            </div>
+            <div class="form-field">
+              <label for="booking-mode">Service Mode</label>
+              <select id="booking-mode">
+                <option value="Self Drop-off">Self Drop-off</option>
+                <option value="Doorstep Pickup (+₹150)">Doorstep Pickup (+₹150)</option>
+              </select>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1.5rem;">
+            Confirm Service Booking
+          </button>
+        </form>
+
+        <div id="booking-pass-container" style="display: none;"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Add New Bike -->
+  <div class="modal-backdrop" id="add-bike-modal" role="dialog" aria-modal="true" aria-labelledby="modal-add-title">
+    <div class="modal-window">
+      <div class="modal-head">
+        <h3 id="modal-add-title">Add Vehicle to Garage</h3>
+        <button class="modal-close-btn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="add-bike-form">
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label for="add-bike-name">Bike Model &amp; Make *</label>
+            <input type="text" id="add-bike-name" placeholder="e.g. Royal Enfield Hunter 350" required>
+          </div>
+
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label for="add-bike-reg">Registration Number *</label>
+            <input type="text" id="add-bike-reg" placeholder="e.g. KA-01-EQ-9921" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label for="add-bike-odo">Current Odometer (KM)</label>
+              <input type="number" id="add-bike-odo" placeholder="e.g. 5200" required>
+            </div>
+            <div class="form-field">
+              <label for="add-bike-mileage">Avg Fuel Mileage (KM/L)</label>
+              <input type="number" id="add-bike-mileage" placeholder="e.g. 36" value="40">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-field">
+              <label for="add-bike-ins">Insurance Expiry</label>
+              <input type="date" id="add-bike-ins">
+            </div>
+            <div class="form-field">
+              <label for="add-bike-puc">PUC Expiry</label>
+              <input type="date" id="add-bike-puc">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1.5rem;">
+            Save to Garage
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Log Service Record -->
+  <div class="modal-backdrop" id="log-service-modal" role="dialog" aria-modal="true" aria-labelledby="modal-log-title">
+    <div class="modal-window">
+      <div class="modal-head">
+        <h3 id="modal-log-title">Log Service Record</h3>
+        <button class="modal-close-btn" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="log-service-form">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="log-date">Service Date *</label>
+              <input type="date" id="log-date" required>
+            </div>
+            <div class="form-field">
+              <label for="log-odo">Odometer at Service (KM) *</label>
+              <input type="number" id="log-odo" placeholder="e.g. 18450" required>
+            </div>
+          </div>
+
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label for="log-center">Workshop / Service Center *</label>
+            <input type="text" id="log-center" placeholder="e.g. Hero Service Center" required>
+          </div>
+
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label for="log-work">Work Description / Parts Changed *</label>
+            <input type="text" id="log-work" placeholder="e.g. Engine Oil, Spark Plug, Brake Fluid" required>
+          </div>
+
+          <div class="form-field" style="margin-bottom: 1.5rem;">
+            <label for="log-cost">Total Invoice Amount (₹) *</label>
+            <input type="number" id="log-cost" placeholder="e.g. 1450" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+            Add to Service History
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Bar -->
+  <div class="toast-notice" id="toast-notice" role="status"></div>
+
+  <!-- =========================================================================
+       FOOTER
+       ========================================================================= -->
+  <footer class="app-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <strong>🏍️ HERORIDE BikeCare</strong> — Personal Vehicle Telemetry &amp; Maintenance Platform
+        </div>
+        <div>
+          <span>© 2026 HERORIDE. All rights reserved.</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- App Script -->
+ <script src="js/script.js"></script>
+</body>
+</html>
