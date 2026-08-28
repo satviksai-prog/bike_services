@@ -7,6 +7,8 @@
       ".git",
       ".gitignore",
       "README.md",
+      "firestore.rules",
+      "functions/**",
       "**/.*",
       "**/node_modules/**"
     ],
@@ -27,5 +29,11 @@
         ]
       }
     ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "functions": {
+    "source": "functions"
   }
 }

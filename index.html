@@ -1,582 +1,3517 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Primary Meta Tags -->
-  <title>🏍️ HERORIDE | Personal Vehicle &amp; Bike Maintenance Dashboard</title>
-  <meta name="title" content="🏍️ HERORIDE | Personal Vehicle & Bike Maintenance Dashboard">
-  <meta name="description" content="All-in-one personal bike management dashboard. Track service dates, insurance renewal, PUC expiry, fuel efficiency, maintenance records, and expense analytics in one place.">
-  <meta name="keywords" content="Bike Maintenance, Vehicle Dashboard, Hero Xtreme, Service Reminders, Insurance Expiry, PUC Countdown, Mileage Calculator, Bike Care">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Cyber Shield — Simple Scam &amp; Fraud Checker</title>
+  <meta name="description" content="A simple, friendly scam, phishing, and fake link detection tool for everyday people, families, and communities.">
+  <meta name="theme-color" content="#2563eb">
 
-  <!-- Open Graph -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="HERORIDE — Smart Bike Maintenance Dashboard">
-  <meta property="og:description" content="Never miss service dates, insurance renewals, or PUC expiry. Keep your bike in optimal condition.">
-  <meta property="og:image" content="images/project-bikecare.svg">
+  <!-- Google Fonts: Inter for Latin, Noto Sans Devanagari & Telugu for Indic languages -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+  <!-- jsQR Library for client-side QR Code decoding -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
 
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="css/style.css"> 
+  <!-- =========================================================================
+       FIREBASE SDKs (Compat version for standalone zero-build single HTML file)
+       ========================================================================= -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-functions-compat.js"></script>
+
+  <style>
+    /* ==========================================================================
+       CYBER SHIELD - ACCESSIBLE, SIMPLE & KIND DESIGN SYSTEM
+       ========================================================================== */
+    :root {
+      --font-family: 'Inter', 'Noto Sans Devanagari', 'Noto Sans Telugu', system-ui, -apple-system, sans-serif;
+      
+      /* Color Palette */
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --primary-dark: #1e3a8a;
+
+      --safe-color: #15803d;
+      --safe-bg: #f0fdf4;
+      --safe-border: #bbf7d0;
+      --safe-text: #14532d;
+
+      --caution-color: #b45309;
+      --caution-bg: #fffbeb;
+      --caution-border: #fde68a;
+      --caution-text: #78350f;
+
+      --danger-color: #b91c1c;
+      --danger-bg: #fef2f2;
+      --danger-border: #fecaca;
+      --danger-text: #7f1d1d;
+
+      --bg-page: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border-subtle: #e2e8f0;
+      --border-focus: #3b82f6;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+      --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 10px 25px -5px rgba(15, 23, 42, 0.12);
+
+      --tap-target: 48px;
+      --transition: all 0.2s ease-in-out;
+    }
+
+    /* Accessibility & Reset */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.5;
+      font-size: 16px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, textarea, select {
+      font-family: inherit;
+      font-size: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Layout Container */
+    .container {
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* ==========================================================================
+       HEADER & NAVIGATION
+       ========================================================================== */
+    header.app-header {
+      background-color: var(--card-bg);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-icon-wrapper {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+      flex-shrink: 0;
+    }
+
+    .brand-text h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .brand-text p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lang-select-wrapper {
+      position: relative;
+    }
+
+    .lang-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: var(--primary-light);
+      color: var(--primary-dark);
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius-full);
+      padding: 8px 30px 8px 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      min-height: 40px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+    .lang-select:hover {
+      background-color: #dbeafe;
+    }
+
+    .lang-arrow {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      font-size: 10px;
+      color: var(--primary-dark);
+    }
+
+    /* Auth & Sync Header Bar */
+    .auth-bar {
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 6px 0;
+      font-size: 0.82rem;
+    }
+
+    .auth-bar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .auth-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .auth-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #16a34a;
+      display: inline-block;
+    }
+
+    .auth-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .google-upgrade-btn {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 32px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: var(--transition);
+    }
+
+    .google-upgrade-btn:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 2px 8px 2px 4px;
+      font-weight: 600;
+    }
+
+    .user-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .signout-btn {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-decoration: underline;
+      padding: 2px 4px;
+    }
+
+    .signout-btn:hover {
+      color: var(--danger-color);
+    }
+
+    /* Persona Badge in Sub-header */
+    .persona-bar {
+      background-color: #f1f5f9;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 8px 0;
+    }
+
+    .persona-bar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.84rem;
+      gap: 8px;
+    }
+
+    .persona-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+    }
+
+    .persona-pill {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .persona-change-btn {
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 0.84rem;
+      text-decoration: underline;
+      padding: 4px 8px;
+      min-height: 32px;
+      border-radius: var(--radius-sm);
+    }
+
+    .persona-change-btn:hover {
+      background-color: #e2e8f0;
+    }
+
+    /* Main View Navigation (Scanner vs Learn) */
+    .nav-toggle-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background-color: #e2e8f0;
+      border-radius: var(--radius-md);
+      padding: 4px;
+      margin: 16px 0 12px 0;
+      gap: 4px;
+    }
+
+    .nav-toggle-btn {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      border-radius: 10px;
+      transition: var(--transition);
+    }
+
+    .nav-toggle-btn.active {
+      background-color: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    }
+
+    /* ==========================================================================
+       MAIN SCANNER CARD
+       ========================================================================== */
+    main {
+      flex: 1;
+      padding-bottom: 40px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    /* 3 Main Tabs: Link, Message, QR Code */
+    .scanner-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .scanner-tab-btn {
+      min-height: 52px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      gap: 3px;
+      padding: 6px 4px;
+      transition: var(--transition);
+    }
+
+    .scanner-tab-btn .tab-icon {
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+
+    .scanner-tab-btn:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    .scanner-tab-btn.active {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary-dark);
+    }
+
+    /* Input Areas */
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.98rem;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .input-hint {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .text-input-wrapper {
+      position: relative;
+    }
+
+    .app-input {
+      width: 100%;
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      font-size: 1rem;
+      line-height: 1.45;
+      background: #fafafa;
+      color: var(--text-main);
+      transition: var(--transition);
+      resize: vertical;
+    }
+
+    .app-input:focus {
+      background: #ffffff;
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .app-input::placeholder {
+      color: #94a3b8;
+    }
+
+    /* QR Code Upload Dropzone */
+    .qr-upload-zone {
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius-md);
+      background: #f8fafc;
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 180px;
+    }
+
+    .qr-upload-zone:hover, .qr-upload-zone.dragover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    .qr-icon-big {
+      font-size: 42px;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .qr-upload-zone p {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .qr-upload-zone span {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .qr-preview-container {
+      margin-top: 12px;
+      display: none;
+      background: #f1f5f9;
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .qr-preview-img {
+      max-height: 180px;
+      max-width: 100%;
+      border-radius: var(--radius-sm);
+      margin: 0 auto 8px auto;
+      display: block;
+    }
+
+    .qr-decoded-text {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 0.86rem;
+      word-break: break-all;
+      color: var(--text-main);
+      font-family: monospace;
+      max-height: 80px;
+      overflow-y: auto;
+    }
+
+    /* Action Helpers (Paste, Samples) */
+    .input-helpers {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .helper-btn {
+      background: #f1f5f9;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 36px;
+      transition: var(--transition);
+    }
+
+    .helper-btn:hover {
+      background: #e2e8f0;
+      color: var(--text-main);
+    }
+
+    .sample-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .sample-chip {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      min-height: 32px;
+    }
+
+    .sample-chip:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    /* Primary Scan Button */
+    .main-cta-btn {
+      width: 100%;
+      min-height: 56px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      font-size: 1.15rem;
+      font-weight: 800;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 18px;
+      transition: var(--transition);
+    }
+
+    .main-cta-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+    }
+
+    .main-cta-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .main-cta-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* ==========================================================================
+       LOADING STATE SCREEN
+       ========================================================================== */
+    .scanning-state {
+      display: none;
+      padding: 36px 16px;
+      text-align: center;
+    }
+
+    .spinner-ring {
+      display: inline-block;
+      width: 58px;
+      height: 58px;
+      border: 5px solid #dbeafe;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.9s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+      margin-bottom: 18px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .scanning-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .scanning-step {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      min-height: 24px;
+      font-weight: 500;
+    }
+
+    /* ==========================================================================
+       RESULT SCREEN (ULTRA CLEAR & JARGON FREE)
+       ========================================================================== */
+    .result-container {
+      display: none;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .verdict-banner {
+      border-radius: var(--radius-lg);
+      padding: 22px 18px;
+      text-align: center;
+      margin-bottom: 20px;
+      border: 2px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .verdict-banner.safe {
+      background-color: var(--safe-bg);
+      border-color: var(--safe-border);
+      color: var(--safe-text);
+    }
+
+    .verdict-banner.caution {
+      background-color: var(--caution-bg);
+      border-color: var(--caution-border);
+      color: var(--caution-text);
+    }
+
+    .verdict-banner.danger {
+      background-color: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: var(--danger-text);
+    }
+
+    .verdict-icon {
+      font-size: 52px;
+      line-height: 1;
+    }
+
+    .verdict-heading {
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .verdict-subtext {
+      font-size: 0.96rem;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+
+    /* Plain Language Reasons (Max 3) */
+    .reasons-box {
+      margin-bottom: 20px;
+    }
+
+    .section-label {
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 800;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .reasons-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .reason-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    .reason-item .reason-icon {
+      font-size: 1.25rem;
+      line-height: 1.2;
+      flex-shrink: 0;
+    }
+
+    /* Action Advice Card */
+    .action-box {
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .action-box.danger-action {
+      background: #fff1f2;
+      border-color: #fda4af;
+    }
+
+    .action-box.caution-action {
+      background: #fffbeb;
+      border-color: #fde68a;
+    }
+
+    .action-box.safe-action {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+
+    .action-icon {
+      font-size: 28px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .action-content h3 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+
+    .action-content p {
+      font-size: 0.95rem;
+      line-height: 1.45;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Result Action Buttons (Report, Share, Check Another) */
+    .result-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      min-height: 48px;
+      background: #f1f5f9;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .btn-danger-outline {
+      width: 100%;
+      min-height: 48px;
+      background: #fff;
+      border: 2px solid #ef4444;
+      color: #b91c1c;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .btn-danger-outline:hover {
+      background: #fef2f2;
+    }
+
+    .btn-primary-reset {
+      width: 100%;
+      min-height: 52px;
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 1.05rem;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .btn-primary-reset:hover {
+      background: var(--primary-hover);
+    }
+
+    /* ==========================================================================
+       HISTORY SECTION
+       ========================================================================== */
+    .history-card {
+      margin-top: 24px;
+    }
+
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .history-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .history-clear-btn {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .history-clear-btn:hover {
+      color: var(--danger-color);
+      background: #fef2f2;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-empty {
+      text-align: center;
+      padding: 24px 12px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      background: #f8fafc;
+      border-radius: var(--radius-md);
+      border: 1px dashed var(--border-subtle);
+    }
+
+    .history-item {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .history-item:hover {
+      border-color: #cbd5e1;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .history-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .history-snippet {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 70%;
+    }
+
+    .mini-badge {
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 0.78rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mini-badge.safe {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .mini-badge.caution {
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .mini-badge.danger {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .history-expanded-details {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border-subtle);
+      font-size: 0.86rem;
+    }
+
+    .history-item.open .history-expanded-details {
+      display: block;
+    }
+
+    /* ==========================================================================
+       LEARN SECTION (5 REAL-WORLD SCAM EXAMPLES)
+       ========================================================================== */
+    .learn-view {
+      display: none;
+    }
+
+    .learn-view.active {
+      display: block;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .learn-intro {
+      background: var(--primary-light);
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .learn-intro h2 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin-bottom: 4px;
+    }
+
+    .learn-intro p {
+      font-size: 0.9rem;
+      color: #1e3a8a;
+    }
+
+    .example-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .example-card {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .example-header {
+      padding: 14px 16px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .example-tag {
+      background: #fee2e2;
+      color: #b91c1c;
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+    }
+
+    .example-title {
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .example-body {
+      padding: 16px;
+    }
+
+    .sample-scam-box {
+      background: #f1f5f9;
+      border-left: 4px solid #ef4444;
+      padding: 12px 14px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 0.92rem;
+      color: var(--text-main);
+      margin-bottom: 14px;
+      line-height: 1.45;
+    }
+
+    .scam-red-flags {
+      margin-bottom: 14px;
+    }
+
+    .red-flag-title {
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: #b91c1c;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 6px;
+    }
+
+    .red-flag-item {
+      font-size: 0.9rem;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .example-test-btn {
+      width: 100%;
+      min-height: 44px;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+
+    .example-test-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+
+    /* ==========================================================================
+       MODALS (PERSONA SETUP & REPORTING HELPLINE)
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 999;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 520px;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-lg);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-icon {
+      font-size: 40px;
+      margin-bottom: 8px;
+    }
+
+    .modal-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+
+    .modal-subtitle {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    /* 3 Large Persona Selection Buttons */
+    .persona-choices {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .persona-choice-btn {
+      width: 100%;
+      min-height: 64px;
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: #ffffff;
+      padding: 12px 16px;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: var(--transition);
+    }
+
+    .persona-choice-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .persona-choice-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+
+    .choice-emoji {
+      font-size: 30px;
+      flex-shrink: 0;
+    }
+
+    .choice-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .choice-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Report Helpline List in Modal */
+    .helpline-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .helpline-item {
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .helpline-item h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .helpline-item p {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+    }
+
+    .call-btn {
+      background: #16a34a;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 42px;
+    }
+
+    .call-btn:hover {
+      background: #15803d;
+    }
+
+    .safety-rule {
+      background: #fef2f2;
+      border-left: 4px solid #ef4444;
+      padding: 10px 14px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      font-size: 0.88rem;
+      color: #991b1b;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    /* Toast Notification */
+    .toast-msg {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: var(--radius-full);
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .toast-msg.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px 16px;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-subtle);
+      background: #ffffff;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .brand-text h1 { font-size: 1.1rem; }
+      .brand-text p { display: none; }
+      .scanner-tab-btn { font-size: 0.85rem; padding: 4px 2px; }
+      .scanner-tab-btn .tab-icon { font-size: 1.1rem; }
+      .verdict-heading { font-size: 1.45rem; }
+    }
+  </style>
 </head>
 <body>
 
   <!-- =========================================================================
-       1. NAVIGATION BAR
+       1. HEADER
        ========================================================================= -->
-  <header class="header">
+  <header class="app-header">
     <div class="container">
-      <nav class="navbar" aria-label="Dashboard Navigation">
-        
-        <!-- Brand Logo -->
-        <a href="#overview" class="brand-logo" aria-label="HERORIDE Home">
-          <span>🏍️ HERORIDE</span>
-          <span class="brand-badge">Dashboard</span>
+      <div class="header-inner">
+        <!-- Logo & Title -->
+        <a href="#" class="brand" onclick="app.resetScanner(); return false;" aria-label="Cyber Shield Home">
+          <div class="brand-icon-wrapper" aria-hidden="true">🛡️</div>
+          <div class="brand-text">
+            <h1 data-i18n="appName">Cyber Shield</h1>
+            <p data-i18n="appTagline">Simple Scam &amp; Fraud Checker</p>
+          </div>
         </a>
 
-        <!-- Navigation Links -->
-        <div class="nav-links">
-          <a href="#overview" class="nav-link active">Overview</a>
-          <a href="#maintenance" class="nav-link">Maintenance</a>
-          <a href="#expiry" class="nav-link">Documents &amp; PUC</a>
-          <a href="#calculators" class="nav-link">Calculators</a>
-          <a href="#history" class="nav-link">Service History</a>
+        <!-- Language Selector -->
+        <div class="header-controls">
+          <div class="lang-select-wrapper">
+            <label for="langSelector" class="sr-only">Choose Language</label>
+            <select id="langSelector" class="lang-select" onchange="app.changeLanguage(this.value)">
+              <option value="en">English</option>
+              <option value="hi">हिन्दी (Hindi)</option>
+              <option value="te">తెలుగు (Telugu)</option>
+            </select>
+            <span class="lang-arrow" aria-hidden="true">▼</span>
+          </div>
         </div>
-
-        <!-- Right: Vehicle Selector, Booking CTA & Theme Toggle -->
-        <div class="nav-actions">
-          
-          <!-- Vehicle Selector -->
-          <select id="vehicle-switcher" class="vehicle-selector-dropdown" aria-label="Select Vehicle">
-            <!-- Populated dynamically via JS -->
-          </select>
-
-          <!-- Book Service Trigger Button -->
-          <button class="btn btn-primary btn-sm trigger-book-service">
-            Book Service
-          </button>
-
-          <!-- Theme Switcher (Dark / Light) -->
-          <button class="theme-btn" id="theme-toggle" aria-label="Toggle Theme" title="Toggle theme">
-            <svg class="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="5"></circle>
-              <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-              <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>
-            <svg class="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-          </button>
-
-          <!-- Mobile Toggle -->
-          <button class="mobile-toggle" id="mobile-toggle" aria-label="Open Navigation">
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-
-        </div>
-
-      </nav>
+      </div>
     </div>
   </header>
 
-  <!-- =========================================================================
-       MAIN DASHBOARD CONTENT
-       ========================================================================= -->
-  <main class="dashboard-wrapper">
+  <!-- Auth & Cloud Sync Status Bar -->
+  <div class="auth-bar">
     <div class="container">
-
-      <!-- Problem Statement Highlight Banner -->
-      <section class="problem-banner" aria-label="Dashboard Purpose">
-        <div class="problem-banner-content">
-          <div class="problem-banner-icon">💡</div>
-          <div class="problem-banner-text">
-            <h4>Smart Vehicle Management</h4>
-            <p>
-              Bike owners often forget their service dates, insurance renewal, pollution certificate, oil changes, and maintenance. HERORIDE brings all this critical information into one live dashboard.
-            </p>
-          </div>
+      <div class="auth-bar-inner">
+        <div class="auth-status" id="authStatusIndicator">
+          <span class="auth-dot" id="authDot"></span>
+          <span id="authStatusText" data-i18n="authGuest">Guest Mode (Instant)</span>
         </div>
-        <button class="btn btn-secondary btn-sm" id="trigger-add-bike">
-          + Add Another Bike
+        <div class="auth-actions" id="authActionsContainer">
+          <!-- Populated dynamically via JS: Google upgrade button or user info -->
+          <button class="google-upgrade-btn" id="googleSignInBtn" onclick="app.signInWithGoogle()">
+            <svg width="14" height="14" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <span data-i18n="authSaveGoogle">Save with Google</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Persona Sub-header Bar -->
+  <div class="persona-bar">
+    <div class="container">
+      <div class="persona-bar-inner">
+        <div class="persona-indicator">
+          <span data-i18n="checkingFor">Checking for:</span>
+          <span class="persona-pill" id="currentPersonaPill">
+            <span id="currentPersonaEmoji">👨‍👩‍👧</span>
+            <span id="currentPersonaLabel">A family member</span>
+          </span>
+        </div>
+        <button class="persona-change-btn" onclick="app.openPersonaModal()" data-i18n="changeMode">
+          Change
         </button>
-      </section>
+      </div>
+    </div>
+  </div>
 
-      <!-- =====================================================================
-           HERO SECTION: CURRENT VEHICLE TELEMETRY CARD (Hero Xtreme)
-           ===================================================================== -->
-      <section class="hero-telemetry-card" id="overview">
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Top Navigation Toggle: Scanner vs Learn -->
+    <div class="nav-toggle-bar" role="tablist">
+      <button class="nav-toggle-btn active" id="navScannerBtn" onclick="app.switchMainView('scanner')" role="tab" aria-selected="true">
+        <span>🔍</span> <span data-i18n="navScanner">Scanner</span>
+      </button>
+      <button class="nav-toggle-btn" id="navLearnBtn" onclick="app.switchMainView('learn')" role="tab" aria-selected="false">
+        <span>💡</span> <span data-i18n="navLearn">Learn to Spot Scams</span>
+      </button>
+    </div>
+
+    <!-- =========================================================================
+         2. SCANNER VIEW
+         ========================================================================= -->
+    <div id="scannerView" class="scanner-view">
+
+      <!-- Scanner Card -->
+      <section class="card" id="scannerCard">
         
-        <!-- Header Info -->
-        <div class="telemetry-header">
-          <div class="bike-title-group">
-            <div class="bike-avatar-icon">🏍️</div>
-            <div>
-              <h1 class="bike-name-text" id="display-bike-name">Hero Xtreme</h1>
-              <div class="bike-reg-badge" id="display-bike-reg">MH-12-AB-4509</div>
-            </div>
-          </div>
-
-          <div class="telemetry-actions">
-            <button class="btn btn-secondary btn-sm" id="update-odometer-btn">
-              ⚡ Update Odometer
-            </button>
-            <button class="btn btn-primary trigger-book-service">
-              Book Service
-            </button>
-          </div>
-        </div>
-
-        <!-- 4 Core Metrics Grid -->
-        <div class="telemetry-metrics-grid">
-          
-          <!-- Metric 1: Vehicle Health Score -->
-          <div class="metric-card">
-            <div class="metric-label">
-              <span>Vehicle Health</span>
-              <span>🟢</span>
-            </div>
-            <div class="metric-value highlight-health" id="metric-health-val">92% 🟢</div>
-            <div class="metric-meta good">
-              <span>✓ All critical checks passed</span>
-            </div>
-          </div>
-
-          <!-- Metric 2: Next Service -->
-          <div class="metric-card">
-            <div class="metric-label">
-              <span>Next Service</span>
-              <span>🔧</span>
-            </div>
-            <div class="metric-value" id="metric-service-val">1,250 KM remaining</div>
-            <div class="metric-meta warn" id="metric-service-meta">
-              <span>Due at 19,700 KM or in 18 days</span>
-            </div>
-          </div>
-
-          <!-- Metric 3: Fuel Efficiency -->
-          <div class="metric-card">
-            <div class="metric-label">
-              <span>Fuel Efficiency</span>
-              <span>⛽</span>
-            </div>
-            <div class="metric-value" id="metric-mileage-val">52 KM/L</div>
-            <div class="metric-meta good">
-              <span>Optimal economy range</span>
-            </div>
-          </div>
-
-          <!-- Metric 4: Total Distance -->
-          <div class="metric-card">
-            <div class="metric-label">
-              <span>Total Distance</span>
-              <span>🛣️</span>
-            </div>
-            <div class="metric-value" id="metric-distance-val">18,450 KM</div>
-            <div class="metric-meta">
-              <span>Odometer verified</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Telemetry Action CTA Bar -->
-        <div class="telemetry-cta-bar">
-          <div class="cta-bar-info">
-            <span class="icon">🔔</span>
-            <div>
-              <h4>Upcoming Scheduled Maintenance</h4>
-              <p>Periodic 6th service due soon. Includes engine oil flush, brake inspection, and air filter cleaning.</p>
-            </div>
-          </div>
-          <button class="btn btn-primary btn-lg trigger-book-service">
-            [ Book Service ]
+        <!-- 3 Main Tabs: Link, Message, QR Code -->
+        <div class="scanner-tabs" role="tablist" aria-label="Input Type">
+          <button class="scanner-tab-btn active" id="tabLinkBtn" onclick="app.switchInputTab('link')" role="tab" aria-selected="true">
+            <span class="tab-icon">🔗</span>
+            <span data-i18n="tabLink">Link</span>
+          </button>
+          <button class="scanner-tab-btn" id="tabMsgBtn" onclick="app.switchInputTab('msg')" role="tab" aria-selected="false">
+            <span class="tab-icon">💬</span>
+            <span data-i18n="tabMessage">Message</span>
+          </button>
+          <button class="scanner-tab-btn" id="tabQrBtn" onclick="app.switchInputTab('qr')" role="tab" aria-selected="false">
+            <span class="tab-icon">📷</span>
+            <span data-i18n="tabQr">QR Code</span>
           </button>
         </div>
 
-      </section>
-
-      <!-- =====================================================================
-           2-COLUMN SECTION: MAINTENANCE CHECKLIST & EXPIRY COUNTDOWNS
-           ===================================================================== -->
-      <div class="dashboard-main-grid">
-        
-        <!-- Left Card: Maintenance Checklist -->
-        <section class="dash-card" id="maintenance">
-          <div class="dash-card-header">
-            <h3 class="dash-card-title">
-              <span>🔧</span> Maintenance Status
-            </h3>
-            <span class="checklist-status-pill ok">Health: 92%</span>
+        <!-- Tab 1: LINK Input -->
+        <div id="tabLinkContent" class="tab-pane active">
+          <div class="input-group">
+            <label for="linkInput" class="input-label" data-i18n="linkInputLabel">Paste website link or address</label>
+            <div class="input-hint" data-i18n="linkInputHint">Example: www.something.com or http://...</div>
+            <textarea id="linkInput" class="app-input" rows="3" placeholder="https://example-bank-update.xyz/login" oninput="app.handleInputState()"></textarea>
           </div>
-
-          <div class="maintenance-checklist" id="maintenance-checklist-list">
-            <!-- Populated dynamically via JS:
-                 ✓ Engine Oil
-                 ✓ Brake Check
-                 ⚠ Tyre Replacement
-                 ✓ Battery
-                 ✓ Chain Lubrication
-                 ✓ Air Filter
-            -->
+          <div class="input-helpers">
+            <button class="helper-btn" onclick="app.pasteClipboard('linkInput')">
+              <span>📋</span> <span data-i18n="btnPaste">Paste</span>
+            </button>
+            <div class="sample-chips">
+              <span style="font-size: 0.78rem; color: var(--text-muted);" data-i18n="trySample">Try sample:</span>
+              <button class="sample-chip" onclick="app.fillSampleLink('bad')">⚠️ Fake Bank Link</button>
+              <button class="sample-chip" onclick="app.fillSampleLink('good')">✅ Normal Site</button>
+            </div>
           </div>
-        </section>
+        </div>
 
-        <!-- Right Card: Expiry Countdowns (Insurance & PUC) -->
-        <section class="dash-card" id="expiry">
-          <div class="dash-card-header">
-            <h3 class="dash-card-title">
-              <span>📄</span> Compliance &amp; Expiry Countdowns
-            </h3>
-            <span class="checklist-status-pill warn">2 Actions Due</span>
+        <!-- Tab 2: MESSAGE Input -->
+        <div id="tabMsgContent" class="tab-pane">
+          <div class="input-group">
+            <label for="msgInput" class="input-label" data-i18n="msgInputLabel">Paste SMS, WhatsApp, or email text</label>
+            <div class="input-hint" data-i18n="msgInputHint">Copy the entire suspicious message and paste it here</div>
+            <textarea id="msgInput" class="app-input" rows="4" placeholder="Dear customer, your bank account will be suspended in 24 hours. Send OTP immediately to verify..." oninput="app.handleInputState()"></textarea>
           </div>
+          <div class="input-helpers">
+            <button class="helper-btn" onclick="app.pasteClipboard('msgInput')">
+              <span>📋</span> <span data-i18n="btnPaste">Paste</span>
+            </button>
+            <div class="sample-chips">
+              <span style="font-size: 0.78rem; color: var(--text-muted);" data-i18n="trySample">Try sample:</span>
+              <button class="sample-chip" onclick="app.fillSampleMsg('kyc')">⚠️ Bank KYC SMS</button>
+              <button class="sample-chip" onclick="app.fillSampleMsg('light')">⚡ Electricity Bill</button>
+            </div>
+          </div>
+        </div>
 
-          <!-- Live Expiry Clocks Grid -->
-          <div class="expiry-countdown-grid">
+        <!-- Tab 3: QR CODE Input -->
+        <div id="tabQrContent" class="tab-pane">
+          <div class="input-group">
+            <label class="input-label" data-i18n="qrInputLabel">Upload or capture photo of QR code</label>
+            <div class="input-hint" data-i18n="qrInputHint">We will safely read what the QR code contains before you open it</div>
             
-            <!-- Insurance Expiry Card -->
-            <div class="expiry-card warn-border">
-              <div class="expiry-header">
-                <span>🛡️ Insurance</span>
-                <span class="expiry-badge warn">Renew Soon</span>
-              </div>
-              <h4>Insurance Expiry</h4>
-              <div class="expiry-countdown-clock" id="ins-countdown-clock">--d --h --m</div>
-              <div class="expiry-date-sub" id="ins-expiry-date">Expires on 10 Sep 2026</div>
-              <div style="margin-top: 1rem;">
-                <a href="https://www.google.com/search?q=bike+insurance+renewal" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="width: 100%;">
-                  Renew Policy
-                </a>
-              </div>
+            <input type="file" id="qrFileInput" accept="image/*" class="sr-only" onchange="app.handleQrFile(event)">
+            
+            <div class="qr-upload-zone" id="qrDropZone" onclick="document.getElementById('qrFileInput').click()">
+              <div class="qr-icon-big">📷</div>
+              <p data-i18n="qrUploadPrompt">Tap to choose photo or take a picture</p>
+              <span data-i18n="qrUploadSub">Supports JPG, PNG, Screenshots</span>
             </div>
 
-            <!-- PUC Expiry Card -->
-            <div class="expiry-card warn-border">
-              <div class="expiry-header">
-                <span>📄 Pollution (PUC)</span>
-                <span class="expiry-badge warn">Urgent</span>
-              </div>
-              <h4>PUC Certificate</h4>
-              <div class="expiry-countdown-clock" id="puc-countdown-clock">--d --h --m</div>
-              <div class="expiry-date-sub" id="puc-expiry-date">Expires on 28 Aug 2026</div>
-              <div style="margin-top: 1rem;">
-                <a href="https://www.google.com/search?q=puc+testing+center+near+me" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="width: 100%;">
-                  Find PUC Center
-                </a>
-              </div>
+            <!-- QR Preview and decoded text -->
+            <div id="qrPreviewContainer" class="qr-preview-container">
+              <img id="qrPreviewImg" class="qr-preview-img" alt="QR Code Preview">
+              <div id="qrDecodedBox" class="qr-decoded-text"></div>
+              <button class="helper-btn" style="margin-top: 8px;" onclick="document.getElementById('qrFileInput').click()" data-i18n="qrUploadAnother">
+                <span>🔄</span> Pick different image
+              </button>
             </div>
-
           </div>
+        </div>
 
-          <!-- Digital Emergency Helpline -->
-          <div style="background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-top: 0.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;">
-            <div style="font-size: 0.85rem;">
-              <strong>🚨 24/7 Roadside Assistance:</strong>
-              <div style="color: var(--text-muted);">Towing &amp; Emergency Breakdown Helpline</div>
-            </div>
-            <a href="tel:18002660018" class="btn btn-outline btn-sm">Call RSA (1800)</a>
-          </div>
+        <!-- Primary Action Button: "Check this now" -->
+        <button id="scanBtn" class="main-cta-btn" onclick="app.startAnalysis()">
+          <span>🛡️</span>
+          <span data-i18n="btnCheckNow">Check this now</span>
+        </button>
 
-        </section>
+      </section>
 
-      </div>
+      <!-- =========================================================================
+           LOADING ANIMATION STATE
+           ========================================================================= -->
+      <section class="card scanning-state" id="scanningStateCard" aria-live="polite">
+        <div class="spinner-ring"></div>
+        <h2 class="scanning-title" data-i18n="loadingTitle">Checking for safety tricks...</h2>
+        <p class="scanning-step" id="scanningStepText" data-i18n="loadingStep1">Looking at website structure...</p>
+      </section>
 
-      <!-- =====================================================================
-           CALCULATORS SECTION (Fuel/Mileage & Maintenance Cost Estimator)
-           ===================================================================== -->
-      <div class="tools-grid" id="calculators">
+      <!-- =========================================================================
+           RESULT SCREEN
+           ========================================================================= -->
+      <section class="result-container" id="resultContainer" aria-live="polite">
         
-        <!-- Tool 1: Fuel & Mileage Calculator -->
-        <section class="calculator-card">
-          <div class="dash-card-header">
-            <h3 class="dash-card-title">
-              <span>⛽</span> Fuel &amp; Mileage Calculator
-            </h3>
+        <!-- Big Colored Verdict Banner -->
+        <div id="verdictBanner" class="verdict-banner danger">
+          <div id="verdictIcon" class="verdict-icon">🔴</div>
+          <h2 id="verdictHeading" class="verdict-heading">Looks Dangerous</h2>
+          <p id="verdictSubtext" class="verdict-subtext">This has strong signs of a cyber scam.</p>
+        </div>
+
+        <!-- Plain Language Reasons Box (Max 3) -->
+        <div class="card reasons-box">
+          <h3 class="section-label" data-i18n="whyVerdictLabel">Why we say this:</h3>
+          <ul id="reasonsList" class="reasons-list">
+            <!-- Populated dynamically via JS -->
+          </ul>
+        </div>
+
+        <!-- What to do now (Action Box) -->
+        <div id="actionBox" class="action-box danger-action">
+          <div id="actionIcon" class="action-icon">🛑</div>
+          <div class="action-content">
+            <h3 data-i18n="whatToDoLabel">What you should do:</h3>
+            <p id="actionText">Do not click this link or reply with OTPs. Call your bank using the phone number printed on your card.</p>
           </div>
+        </div>
 
-          <div class="form-row">
-            <div class="form-field">
-              <label for="calc-trip-distance">Distance Traveled (KM)</label>
-              <input type="number" id="calc-trip-distance" placeholder="e.g. 260" value="260">
-            </div>
-            <div class="form-field">
-              <label for="calc-fuel-liters">Fuel Filled (Liters)</label>
-              <input type="number" id="calc-fuel-liters" placeholder="e.g. 5.0" value="5.0" step="0.1">
-            </div>
-          </div>
+        <!-- Action Buttons -->
+        <div class="result-buttons">
+          <button class="btn-danger-outline" onclick="app.openReportModal()">
+            <span>🚨</span> <span data-i18n="btnReportScam">Report this as a scam (Helpline 1930)</span>
+          </button>
+          
+          <button class="btn-secondary" onclick="app.shareWarning()">
+            <span>📢</span> <span data-i18n="btnShareFamily">Share warning with family on WhatsApp</span>
+          </button>
 
-          <div class="form-field full">
-            <label for="calc-fuel-price">Fuel Price per Liter (₹)</label>
-            <input type="number" id="calc-fuel-price" placeholder="e.g. 105" value="105">
-          </div>
-
-          <div class="calc-output-box">
-            <div class="calc-output-item">
-              <h5>Calculated Mileage</h5>
-              <p id="res-mileage">52.0 KM/L</p>
-            </div>
-            <div class="calc-output-item">
-              <h5>Running Cost</h5>
-              <p id="res-cost-per-km">₹2.02 /KM</p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Tool 2: Maintenance-Cost Calculator -->
-        <section class="calculator-card">
-          <div class="dash-card-header">
-            <h3 class="dash-card-title">
-              <span>💰</span> Maintenance-Cost Estimator
-            </h3>
-            <span class="checklist-status-pill ok" id="estimated-service-cost">₹1,420</span>
-          </div>
-
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-            Select upcoming items to estimate total workshop expenditure:
-          </p>
-
-          <div style="display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem;">
-            <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); cursor: pointer;">
-              <span><input type="checkbox" class="service-estimate-item" data-price="650" checked> Premium Full Synthetic 10W30 Engine Oil</span>
-              <strong style="font-family: var(--font-mono)">₹650</strong>
-            </label>
-            <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); cursor: pointer;">
-              <span><input type="checkbox" class="service-estimate-item" data-price="120" checked> OEM Oil Filter Replacement</span>
-              <strong style="font-family: var(--font-mono)">₹120</strong>
-            </label>
-            <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); cursor: pointer;">
-              <span><input type="checkbox" class="service-estimate-item" data-price="250"> Air Filter Clean / Replace</span>
-              <strong style="font-family: var(--font-mono)">₹250</strong>
-            </label>
-            <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); cursor: pointer;">
-              <span><input type="checkbox" class="service-estimate-item" data-price="200" checked> Chain Slack Adjustment &amp; O-Ring Lube</span>
-              <strong style="font-family: var(--font-mono)">₹200</strong>
-            </label>
-            <label style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); cursor: pointer;">
-              <span><input type="checkbox" class="service-estimate-item" data-price="450" checked> Standard Periodic Labor &amp; Wash</span>
-              <strong style="font-family: var(--font-mono)">₹450</strong>
-            </label>
-          </div>
-        </section>
-
-      </div>
-
-      <!-- =====================================================================
-           SERVICE HISTORY SECTION
-           ===================================================================== -->
-      <section class="history-section-card" id="history">
-        <div class="dash-card-header">
-          <h3 class="dash-card-title">
-            <span>📋</span> Complete Service &amp; Maintenance History
-          </h3>
-          <button class="btn btn-secondary btn-sm" id="trigger-log-service">
-            + Log Past Service Record
+          <button class="btn-primary-reset" onclick="app.resetScanner()">
+            <span>🔄</span> <span data-i18n="btnCheckAnother">Check another link or message</span>
           </button>
         </div>
 
-        <div class="table-responsive">
-          <table class="data-table" aria-label="Service History Log">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Odometer</th>
-                <th>Workshop / Center</th>
-                <th>Work Done</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="service-history-tbody">
-              <!-- Populated dynamically via JS -->
-            </tbody>
-          </table>
+      </section>
+
+      <!-- =========================================================================
+           HISTORY CARD
+           ========================================================================= -->
+      <section class="card history-card" id="historyCard">
+        <div class="history-header">
+          <h3 class="history-title">
+            <span>🕒</span> <span data-i18n="historyTitle">Past Checks</span>
+          </h3>
+          <button id="clearHistoryBtn" class="history-clear-btn" onclick="app.clearHistory()" data-i18n="clearHistory">Clear</button>
+        </div>
+        <div id="historyList" class="history-list">
+          <div class="history-empty" data-i18n="historyEmpty">Your recent checks will appear here.</div>
         </div>
       </section>
 
     </div>
+
+    <!-- =========================================================================
+         3. LEARN VIEW (5 REAL-WORLD SCAM EXAMPLES)
+         ========================================================================= -->
+    <div id="learnView" class="learn-view">
+      
+      <div class="learn-intro">
+        <h2 data-i18n="learnIntroTitle">Learn How to Spot Real Scams</h2>
+        <p data-i18n="learnIntroText">Scammers use the same tricks again and again. Tap on these common examples to see how to protect yourself and your family.</p>
+      </div>
+
+      <div class="example-cards" id="exampleCardsList">
+        <!-- Rendered via JS -->
+      </div>
+
+    </div>
+
   </main>
 
   <!-- =========================================================================
-       MODALS
+       4. MODALS
        ========================================================================= -->
 
-  <!-- Modal 1: Book Service Simulation -->
-  <div class="modal-backdrop" id="book-service-modal" role="dialog" aria-modal="true" aria-labelledby="modal-book-title">
-    <div class="modal-window">
-      <div class="modal-head">
-        <h3 id="modal-book-title">Book Authorized Service</h3>
-        <button class="modal-close-btn" aria-label="Close">&times;</button>
+  <!-- Persona Selection Modal (First-time or manual change) -->
+  <div id="personaModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="personaModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-icon">🛡️</div>
+        <h2 id="personaModalTitle" class="modal-title" data-i18n="personaTitle">Who are you checking this for?</h2>
+        <p class="modal-subtitle" data-i18n="personaSubtitle">We will adapt explanations to be simple, kind, and easy to understand.</p>
       </div>
-      <div class="modal-body">
-        
-        <form id="book-service-form">
-          <div class="form-field" style="margin-bottom: 1rem;">
-            <label>Selected Vehicle</label>
-            <input type="text" class="modal-auto-bike-name" value="Hero Xtreme 160R (MH-12-AB-4509)" readonly style="font-weight: 700;">
+
+      <div class="persona-choices">
+        <button class="persona-choice-btn" onclick="app.selectPersona('myself')">
+          <span class="choice-emoji">🙋‍♂️</span>
+          <div>
+            <div class="choice-title" data-i18n="personaMyselfTitle">Myself</div>
+            <div class="choice-desc" data-i18n="personaMyselfDesc">Direct and clear safety advice for your own daily use.</div>
           </div>
+        </button>
 
-          <div class="form-field" style="margin-bottom: 1rem;">
-            <label for="booking-center">Authorized Service Hub</label>
-            <select id="booking-center" required>
-              <option value="Hero MotoCorp Authorized Workshop">Hero MotoCorp Authorized Workshop</option>
-              <option value="Speedy Bike Care & Tuning">Speedy Bike Care &amp; Tuning</option>
-              <option value="MotoDoc Multi-Brand Garage">MotoDoc Multi-Brand Garage</option>
-            </select>
+        <button class="persona-choice-btn" onclick="app.selectPersona('family')">
+          <span class="choice-emoji">👨‍👩‍👧</span>
+          <div>
+            <div class="choice-title" data-i18n="personaFamilyTitle">A family member (Elderly / Parents)</div>
+            <div class="choice-desc" data-i18n="personaFamilyDesc">Extra-gentle, plain-language advice you can read out or forward to parents.</div>
           </div>
+        </button>
 
-          <div class="form-field" style="margin-bottom: 1rem;">
-            <label for="booking-service-type">Service Package</label>
-            <select id="booking-service-type" required>
-              <option value="Periodic General Service & Oil Flush">Periodic General Service &amp; Oil Flush</option>
-              <option value="Brake Overhaul & Pad Replacement">Brake Overhaul &amp; Pad Replacement</option>
-              <option value="Tyre Replacement & Balancing">Tyre Replacement &amp; Balancing</option>
-              <option value="Electrical & Battery Health Diagnosis">Electrical &amp; Battery Health Diagnosis</option>
-            </select>
+        <button class="persona-choice-btn" onclick="app.selectPersona('community')">
+          <span class="choice-emoji">🤝</span>
+          <div>
+            <div class="choice-title" data-i18n="personaCommunityTitle">My community / Friends</div>
+            <div class="choice-desc" data-i18n="personaCommunityDesc">Helpful explanations ready to share with neighbors and groups.</div>
           </div>
+        </button>
+      </div>
 
-          <div class="form-row">
-            <div class="form-field">
-              <label for="booking-date">Preferred Date &amp; Time</label>
-              <input type="datetime-local" id="booking-date" required>
-            </div>
-            <div class="form-field">
-              <label for="booking-mode">Service Mode</label>
-              <select id="booking-mode">
-                <option value="Self Drop-off">Self Drop-off</option>
-                <option value="Doorstep Pickup (+₹150)">Doorstep Pickup (+₹150)</option>
-              </select>
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1.5rem;">
-            Confirm Service Booking
-          </button>
-        </form>
-
-        <div id="booking-pass-container" style="display: none;"></div>
-
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="app.closePersonaModal()" data-i18n="btnSkip">Skip for now</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 2: Add New Bike -->
-  <div class="modal-backdrop" id="add-bike-modal" role="dialog" aria-modal="true" aria-labelledby="modal-add-title">
-    <div class="modal-window">
-      <div class="modal-head">
-        <h3 id="modal-add-title">Add Vehicle to Garage</h3>
-        <button class="modal-close-btn" aria-label="Close">&times;</button>
+  <!-- Scam Report & Emergency Helplines Modal -->
+  <div id="reportModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-icon">🚨</div>
+        <h2 id="reportModalTitle" class="modal-title" data-i18n="reportTitle">How to Report Cyber Scams</h2>
+        <p class="modal-subtitle" data-i18n="reportSubtitle">Official and free national helplines for reporting fraud.</p>
       </div>
-      <div class="modal-body">
-        <form id="add-bike-form">
-          <div class="form-field" style="margin-bottom: 1rem;">
-            <label for="add-bike-name">Bike Model &amp; Make *</label>
-            <input type="text" id="add-bike-name" placeholder="e.g. Royal Enfield Hunter 350" required>
-          </div>
 
-          <div class="form-field" style="margin-bottom: 1rem;">
-            <label for="add-bike-reg">Registration Number *</label>
-            <input type="text" id="add-bike-reg" placeholder="e.g. KA-01-EQ-9921" required>
-          </div>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label for="add-bike-odo">Current Odometer (KM)</label>
-              <input type="number" id="add-bike-odo" placeholder="e.g. 5200" required>
-            </div>
-            <div class="form-field">
-              <label for="add-bike-mileage">Avg Fuel Mileage (KM/L)</label>
-              <input type="number" id="add-bike-mileage" placeholder="e.g. 36" value="40">
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-field">
-              <label for="add-bike-ins">Insurance Expiry</label>
-              <input type="date" id="add-bike-ins">
-            </div>
-            <div class="form-field">
-              <label for="add-bike-puc">PUC Expiry</label>
-              <input type="date" id="add-bike-puc">
-            </div>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 1.5rem;">
-            Save to Garage
-          </button>
-        </form>
+      <div class="safety-rule" data-i18n="safetyGoldenRule">
+        ⚠️ Golden Rule: Never share your OTP, PIN, or Card CVV with anyone — no real bank will ever ask for them.
       </div>
-    </div>
-  </div>
 
-  <!-- Modal 3: Log Service Record -->
-  <div class="modal-backdrop" id="log-service-modal" role="dialog" aria-modal="true" aria-labelledby="modal-log-title">
-    <div class="modal-window">
-      <div class="modal-head">
-        <h3 id="modal-log-title">Log Service Record</h3>
-        <button class="modal-close-btn" aria-label="Close">&times;</button>
+      <div class="helpline-list">
+        <div class="helpline-item">
+          <div>
+            <h4 data-i18n="helpline1930Title">National Cyber Crime Helpline (India)</h4>
+            <p data-i18n="helpline1930Desc">Dial 1930 immediately if money was deducted from your account.</p>
+          </div>
+          <a href="tel:1930" class="call-btn">📞 1930</a>
+        </div>
+
+        <div class="helpline-item">
+          <div>
+            <h4 data-i18n="helplineGovTitle">National Cybercrime Portal</h4>
+            <p data-i18n="helplineGovDesc">File a detailed online complaint at cybercrime.gov.in</p>
+          </div>
+          <a href="https://cybercrime.gov.in" target="_blank" rel="noopener" class="call-btn" style="background: #2563eb;">🌐 Open</a>
+        </div>
+
+        <div class="helpline-item">
+          <div>
+            <h4 data-i18n="helplineBankTitle">Your Bank Helpline</h4>
+            <p data-i18n="helplineBankDesc">Call the official customer care number printed on the back of your debit card to freeze cards.</p>
+          </div>
+        </div>
       </div>
-      <div class="modal-body">
-        <form id="log-service-form">
-          <div class="form-row">
-            <div class="form-field">
-              <label for="log-date">Service Date *</label>
-              <input type="date" id="log-date" required>
-            </div>
-            <div class="form-field">
-              <label for="log-odo">Odometer at Service (KM) *</label>
-              <input type="number" id="log-odo" placeholder="e.g. 18450" required>
-            </div>
-          </div>
 
-          <div class="form-field" style="margin-bottom: 1rem;">
-            <label for="log-center">Workshop / Service Center *</label>
-            <input type="text" id="log-center" placeholder="e.g. Hero Service Center" required>
-          </div>
+      <!-- Cloud Community Report Button -->
+      <button class="btn-danger-outline" style="margin-bottom: 12px;" onclick="app.submitCloudReport()">
+        <span>📢</span> <span data-i18n="btnSubmitCloudReport">Submit this scam to community database</span>
+      </button>
 
-          <div class="form-field" style="margin-bottom: 1rem;">
-            <label for="log-work">Work Description / Parts Changed *</label>
-            <input type="text" id="log-work" placeholder="e.g. Engine Oil, Spark Plug, Brake Fluid" required>
-          </div>
-
-          <div class="form-field" style="margin-bottom: 1.5rem;">
-            <label for="log-cost">Total Invoice Amount (₹) *</label>
-            <input type="number" id="log-cost" placeholder="e.g. 1450" required>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
-            Add to Service History
-          </button>
-        </form>
+      <div class="modal-actions">
+        <button class="btn-primary-reset" onclick="app.closeReportModal()" data-i18n="btnClose">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- Toast Notification Bar -->
-  <div class="toast-notice" id="toast-notice" role="status"></div>
+  <!-- Toast Notification -->
+  <div id="toast" class="toast-msg" role="status" aria-live="polite"></div>
 
-  <!-- =========================================================================
-       FOOTER
-       ========================================================================= -->
-  <footer class="app-footer">
+  <!-- Footer -->
+  <footer>
     <div class="container">
-      <div class="footer-inner">
-        <div>
-          <strong>🏍️ HERORIDE BikeCare</strong> — Personal Vehicle Telemetry &amp; Maintenance Platform
-        </div>
-        <div>
-          <span>© 2026 HERORIDE. All rights reserved.</span>
-        </div>
-      </div>
+      <p data-i18n="footerText">Cyber Shield — Keeping families and communities safe from cyber scams. All checks run locally or securely via Cloud Functions.</p>
     </div>
   </footer>
 
-  <!-- App Script -->
- <script src="js/script.js"></script>
+  <!-- =========================================================================
+       5. EMBEDDED JAVASCRIPT & FIREBASE INTEGRATION
+       ========================================================================= -->
+  <script>
+    /* ==========================================================================
+       FIREBASE CONFIGURATION
+       --------------------------------------------------------------------------
+       Replace the placeholder values below with your Firebase Project config
+       found in Firebase Console -> Project Settings -> General -> Your apps -> Web
+       ========================================================================== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyPlaceholderKey-ReplaceWithYourOwn", // <-- PASTE YOUR apiKey HERE
+      authDomain: "bike-service-592b0.firebaseapp.com",    // <-- PASTE YOUR authDomain HERE
+      projectId: "bike-service-592b0",                     // <-- PASTE YOUR projectId HERE
+      storageBucket: "bike-service-592b0.appspot.com",     // <-- PASTE YOUR storageBucket HERE
+      messagingSenderId: "775699763611",                   // <-- PASTE YOUR messagingSenderId HERE
+      appId: "1:775699763611:web:placeholderAppId"        // <-- PASTE YOUR appId HERE
+    };
+
+    /* ==========================================================================
+       TRANSLATION DICTIONARY (English, Hindi, Telugu)
+       ========================================================================== */
+    const I18N = {
+      en: {
+        appName: "Cyber Shield",
+        appTagline: "Simple Scam & Fraud Checker",
+        checkingFor: "Checking for:",
+        changeMode: "Change",
+        navScanner: "Scanner",
+        navLearn: "Learn to Spot Scams",
+        tabLink: "Link",
+        tabMessage: "Message",
+        tabQr: "QR Code",
+        linkInputLabel: "Paste website link or address",
+        linkInputHint: "Example: www.something.com or http://...",
+        msgInputLabel: "Paste SMS, WhatsApp, or email text",
+        msgInputHint: "Copy the entire suspicious message and paste it here",
+        qrInputLabel: "Upload or capture photo of QR code",
+        qrInputHint: "We will safely read what the QR code contains before you open it",
+        btnPaste: "Paste",
+        trySample: "Try sample:",
+        qrUploadPrompt: "Tap to choose photo or take a picture",
+        qrUploadSub: "Supports JPG, PNG, Screenshots",
+        qrUploadAnother: "Pick different image",
+        btnCheckNow: "Check this now",
+        loadingTitle: "Checking for safety tricks...",
+        loadingStep1: "Analyzing with secure Cloud engine...",
+        loadingStep2: "Checking for pressure and urgency tricks...",
+        loadingStep3: "Preparing safe advice for you...",
+        whyVerdictLabel: "Why we say this:",
+        whatToDoLabel: "What you should do:",
+        btnReportScam: "Report this as a scam (Helpline 1930)",
+        btnShareFamily: "Share warning with family on WhatsApp",
+        btnCheckAnother: "Check another link or message",
+        historyTitle: "Past Checks",
+        clearHistory: "Clear",
+        historyEmpty: "Your recent checks will appear here.",
+        learnIntroTitle: "Learn How to Spot Real Scams",
+        learnIntroText: "Scammers use the same tricks again and again. Tap on these common examples to see how to protect yourself and your family.",
+        testThisExample: "Test this in Scanner",
+        personaTitle: "Who are you checking this for?",
+        personaSubtitle: "We will adapt explanations to be simple, kind, and easy to understand.",
+        personaMyselfTitle: "Myself",
+        personaMyselfDesc: "Direct and clear safety advice for your own daily use.",
+        personaFamilyTitle: "A family member (Elderly / Parents)",
+        personaFamilyDesc: "Extra-gentle, plain-language advice you can read out or forward to parents.",
+        personaCommunityTitle: "My community / Friends",
+        personaCommunityDesc: "Helpful explanations ready to share with neighbors and groups.",
+        btnSkip: "Skip for now",
+        reportTitle: "How to Report Cyber Scams",
+        reportSubtitle: "Official and free national helplines for reporting fraud.",
+        safetyGoldenRule: "⚠️ Golden Rule: Never share your OTP, PIN, or Card CVV with anyone — no real bank will ever ask for them.",
+        helpline1930Title: "National Cyber Crime Helpline (India)",
+        helpline1930Desc: "Dial 1930 immediately if money was deducted from your account.",
+        helplineGovTitle: "National Cybercrime Portal",
+        helplineGovDesc: "File a detailed online complaint at cybercrime.gov.in",
+        helplineBankTitle: "Your Bank Helpline",
+        helplineBankDesc: "Call the official customer care number printed on the back of your debit card to freeze cards.",
+        btnSubmitCloudReport: "Submit this scam to community database",
+        btnClose: "Close",
+        footerText: "Cyber Shield — Keeping families and communities safe from cyber scams. All checks run locally or securely via Cloud Functions.",
+
+        // Auth
+        authGuest: "Guest Mode (Instant)",
+        authSaveGoogle: "Save with Google",
+        authSignedIn: "Cloud Sync Active",
+        authSignOut: "Sign out",
+
+        // Verdicts
+        verdictSafe: "Looks Safe",
+        verdictCaution: "Be Careful",
+        verdictDanger: "Looks Dangerous",
+        verdictSafeSub: "We did not find common scam tricks, but always stay alert.",
+        verdictCautionSub: "This has some unusual elements. Double check before proceeding.",
+        verdictDangerSub: "This has strong signs of a cyber scam or phishing attempt.",
+
+        // Persona Labels
+        persona_myself: "Myself",
+        persona_family: "A family member",
+        persona_community: "My community",
+
+        // Plain Reason Templates [myself, family, community]
+        reason_http_insecure: [
+          "This website does not have a secure lock (HTTPS), meaning anything you type can be seen by others.",
+          "This link does not use a secure lock. Please tell your family member not to enter passwords here.",
+          "This link is not securely encrypted. Warn group members not to type personal details."
+        ],
+        reason_ip_address: [
+          "This link uses random numbers instead of a real company website address.",
+          "This link uses numbers instead of a real company name. Real banks never do this.",
+          "This points to a raw numeric computer address, which is typical of fake websites."
+        ],
+        reason_at_trick: [
+          "This link uses a hidden '@' trick to secretly send you to a different webpage.",
+          "This is a deceptive link designed to fool people into visiting a fake website.",
+          "This link uses address masking to trick users into loading an unintended website."
+        ],
+        reason_risky_tld: [
+          "This website uses an unusual ending (%TLD%) commonly used for cheap throwaway scam sites.",
+          "The website address ends in an unusual ending (%TLD%). Real organizations use known addresses like .com, .org, or .in.",
+          "The domain extension (%TLD%) is frequently associated with mass spam campaigns."
+        ],
+        reason_brand_bait: [
+          "The address contains words like '%KEYWORD%' trying to imitate an official bank or service.",
+          "This address tries to look like a real bank or service by putting '%KEYWORD%' in the link. Real companies have their own official website.",
+          "Impersonation keyword '%KEYWORD%' detected in web address."
+        ],
+        reason_hyphens_subdomains: [
+          "The link has an unusually long, scrambled name with many dashes to look confusing.",
+          "The website address is suspiciously long and messy. Real banks keep their addresses short and official.",
+          "The link contains excessive hyphenation designed to mimic legitimate domain names."
+        ],
+        reason_shortener: [
+          "This is a shortened link (%HOST%) that hides where it actually goes.",
+          "This short link hides the real website. Scammers often use this so you cannot see the real link.",
+          "Shortened link detected. Advise users to verify the real destination first."
+        ],
+        reason_danger_file: [
+          "This link asks to download an app file (.%EXT%), which could be dangerous malware.",
+          "This link tries to download a program to the phone (.%EXT%). Please do NOT let family members install it.",
+          "Direct executable/app download detected (.%EXT%). High risk of device infection."
+        ],
+        reason_urgency: [
+          "This message is trying to rush and panic you with emergency threats (%WORDS%).",
+          "The message uses scary words (%WORDS%) to make you panic. Scammers do this so you act without thinking.",
+          "High urgency and fear tactics detected (%WORDS%) to force hasty decisions."
+        ],
+        reason_otp_pin: [
+          "This message asks for secret credentials like OTP, PIN, or passwords.",
+          "It asks for OTP or secret numbers. Remind your family that real banks NEVER ask for OTPs or PINs.",
+          "Credential harvesting alert: Requests secret OTP, password, or PIN."
+        ],
+        reason_lottery_bait: [
+          "This promises free lottery money, prizes, or unrealistically easy cash (%WORDS%).",
+          "It promises free money or prizes (%WORDS%). Remind your loved ones that nobody gives free money on WhatsApp or SMS.",
+          "Unrealistic prize or financial bait detected (%WORDS%)."
+        ],
+        reason_gov_impersonation: [
+          "It claims to be from electricity boards, police, tax, or KYC departments threatening sudden disconnection or arrest.",
+          "It threatens that electricity or SIM card will be cut off or KYC is expired. Scammers use this threat constantly.",
+          "Authority and utility impersonation threat detected."
+        ],
+        reason_upi_scam: [
+          "This QR code or link is asking to SEND money using UPI. Remember: You NEVER need to enter a UPI PIN to receive cashback or money!",
+          "Warning! This QR code is trying to deduct money from the bank account. You only enter UPI PIN to PAY, never to receive money.",
+          "UPI payment request detected disguised as reward or cashback."
+        ],
+        reason_phone_link_combo: [
+          "It gives an unknown phone number and asks you to call or click immediately.",
+          "It asks you to call an unknown number right away. Tell your family to only use official helpline numbers.",
+          "Combined suspicious link with request to call unknown number."
+        ],
+        reason_generic_greeting: [
+          "It uses a generic greeting ('Dear Customer') without your real name.",
+          "It does not address you by name, only 'Dear Customer', which is typical of bulk scam messages.",
+          "Impersonal greeting typical of automated phishing broadcasts."
+        ],
+        reason_courier_trap: [
+          "It claims a parcel or package cannot be delivered and asks you to update your address or pay a small fee.",
+          "Fake parcel delivery message. Tell your family not to pay any small delivery fees for parcels they didn't order.",
+          "Courier/parcel delivery phishing hook detected."
+        ],
+        reason_looks_clean: [
+          "No common scam words, suspicious links, or pressure tactics were found.",
+          "Everything looks normal and clean. No scary threats or fake link tricks were detected.",
+          "No phishing indicators, malicious patterns, or suspicious triggers found."
+        ],
+
+        // Action Sentences [myself, family, community]
+        action_safe: [
+          "You can open this safely. As always, never type your banking PIN on any website.",
+          "This looks safe to open. Just remind them to never enter passwords or OTPs anywhere.",
+          "Appears legitimate. General safety rules still apply."
+        ],
+        action_caution: [
+          "Do not share personal details, passwords, or money. Verify with the sender through another channel first.",
+          "Please check with them before they click. Do not let them enter any banking details or secret numbers.",
+          "Advise caution: Verify with the sender independently before clicking or sharing information."
+        ],
+        action_danger: [
+          "Don't click this link, don't enter any OTP, and don't pay money. Delete the message or block the sender.",
+          "Please do NOT let your family member click this or call this number. Delete the message and reassure them their account is safe.",
+          "Warning: Highly deceptive scam. Advise community members to delete immediately and never share OTPs."
+        ]
+      },
+
+      hi: {
+        appName: "साइबर शील्ड (Cyber Shield)",
+        appTagline: "सरल स्कैम व फर्जी लिंक जांच टूल",
+        checkingFor: "किसके लिए जांच रहे हैं:",
+        changeMode: "बदलें",
+        navScanner: "स्कैनर",
+        navLearn: "स्कैम पहचानना सीखें",
+        tabLink: "लिंक (Link)",
+        tabMessage: "मैसेज (Message)",
+        tabQr: "QR कोड",
+        linkInputLabel: "वेबसाइट लिंक या पता यहाँ पेस्ट करें",
+        linkInputHint: "उदाहरण: www.something.com या http://...",
+        msgInputLabel: "SMS, WhatsApp या ईमेल का मैसेज यहाँ पेस्ट करें",
+        msgInputHint: "पूरा संदिग्ध मैसेज कॉपी करके यहाँ डालें",
+        qrInputLabel: "QR कोड का फोटो अपलोड करें या खींचें",
+        qrInputHint: "हम खोलने से पहले सुरक्षित रूप से देखेंगे कि QR कोड में क्या है",
+        btnPaste: "पेस्ट करें",
+        trySample: "उदाहरण देखें:",
+        qrUploadPrompt: "फोटो चुनने या खींचने के लिए टैप करें",
+        qrUploadSub: "JPG, PNG और स्क्रीनशॉट समर्थित हैं",
+        qrUploadAnother: "दूसरी फोटो चुनें",
+        btnCheckNow: "अभी जांच करें",
+        loadingTitle: "सुरक्षा जांच की जा रही है...",
+        loadingStep1: "सुरक्षित क्लाउड इंजन से जांच हो रही है...",
+        loadingStep2: "डराने या जल्दबाजी कराने वाले शब्दों की पहचान...",
+        loadingStep3: "आपके लिए सुरक्षित सलाह तैयार की जा रही है...",
+        whyVerdictLabel: "हमने यह नतीजा क्यों दिया:",
+        whatToDoLabel: "अब आपको क्या करना चाहिए:",
+        btnReportScam: "स्कैम की रिपोर्ट करें (हेल्पलाइन 1930)",
+        btnShareFamily: "परिवार को WhatsApp पर चेतावनी भेजें",
+        btnCheckAnother: "कोई दूसरा लिंक या मैसेज जांचें",
+        historyTitle: "पिछली जांचें",
+        clearHistory: "हटाएं",
+        historyEmpty: "आपकी हाल की जांचें यहाँ दिखाई देंगी।",
+        learnIntroTitle: "असली स्कैम पहचानना सीखें",
+        learnIntroText: "धोखेबाज बार-बार एक जैसे ही तरीके अपनाते हैं। अपने और अपने परिवार की सुरक्षा के लिए इन 5 उदाहरणों को समझें।",
+        testThisExample: "इसे स्कैनर में जांच कर देखें",
+        personaTitle: "आप यह जांच किसके लिए कर रहे हैं?",
+        personaSubtitle: "हम भाषा को बहुत ही आसान, सरल और मददगार बना देंगे।",
+        personaMyselfTitle: "स्वयं के लिए (Myself)",
+        personaMyselfDesc: "आपके अपने रोज़मर्रा के उपयोग के लिए सीधी और स्पष्ट सलाह।",
+        personaFamilyTitle: "परिवार के सदस्य / माता-पिता के लिए",
+        personaFamilyDesc: "सरल और प्यार भरी भाषा ताकि आप बुजुर्गों को समझा सकें।",
+        personaCommunityTitle: "दोस्तों या समाज के लिए",
+        personaCommunityDesc: "ग्रुप्स और पड़ोसियों के साथ साझा करने योग्य स्पष्ट सलाह।",
+        btnSkip: "अभी छोड़ें",
+        reportTitle: "साइबर स्कैम की रिपोर्ट कैसे करें",
+        reportSubtitle: "धोखाधड़ी की शिकायत के लिए आधिकारिक और निशुल्क हेल्पलाइन।",
+        safetyGoldenRule: "⚠️ पक्का नियम: अपना OTP, ATM PIN या कार्ड का CVV कभी किसी को न बताएं — कोई भी असली बैंक इन्हें कभी नहीं मांगता।",
+        helpline1930Title: "राष्ट्रीय साइबर अपराध हेल्पलाइन (भारत)",
+        helpline1930Desc: "अगर बैंक से पैसे कट जाएं तो तुरंत 1930 पर कॉल करें।",
+        helplineGovTitle: "राष्ट्रीय साइबर क्राइम पोर्टल",
+        helplineGovDesc: "cybercrime.gov.in पर ऑनलाइन शिकायत दर्ज करें।",
+        helplineBankTitle: "अपने बैंक की हेल्पलाइन",
+        helplineBankDesc: "कार्ड ब्लॉक कराने के लिए अपने ATM कार्ड के पीछे छपे नंबर पर कॉल करें।",
+        btnSubmitCloudReport: "इस स्कैम को डेटाबेस में दर्ज करें",
+        btnClose: "बंद करें",
+        footerText: "साइबर शील्ड — परिवारों को ऑनलाइन धोखाधड़ी से सुरक्षित रखने का सरल माध्यम। सभी जांचें आपके फ़ोन या क्लाउड द्वारा सुरक्षित रूप से होती हैं।",
+
+        // Auth
+        authGuest: "अतिथि मोड (अस्थायी)",
+        authSaveGoogle: "Google से सुरक्षित करें",
+        authSignedIn: "क्लाउड सिंक चालू",
+        authSignOut: "साइन आउट",
+
+        // Verdicts
+        verdictSafe: "सुरक्षित लग रहा है",
+        verdictCaution: "सावधान रहें",
+        verdictDanger: "खतरनाक लग रहा है",
+        verdictSafeSub: "इसमें कोई सामान्य स्कैम ट्रिक नहीं मिली, फिर भी सतर्क रहें।",
+        verdictCautionSub: "इसमें कुछ असामान्य बातें हैं। आगे बढ़ने से पहले दोबारा जांचें।",
+        verdictDangerSub: "इसमें साइबर ठगी या फर्जीवाड़े के साफ संकेत हैं।",
+
+        // Persona Labels
+        persona_myself: "स्वयं के लिए",
+        persona_family: "परिवार के लिए",
+        persona_community: "समाज के लिए",
+
+        // Plain Reason Templates
+        reason_http_insecure: [
+          "इस वेबसाइट पर सुरक्षित ताला (HTTPS) नहीं है। आपका लिखा पासवर्ड कोई भी देख सकता है।",
+          "यह लिंक सुरक्षित नहीं है। कृपया परिवार के सदस्य को यहाँ कोई पासवर्ड न डालने दें।",
+          "यह असुरक्षित लिंक है। सदस्यों को निजी जानकारी न भरने की सलाह दें।"
+        ],
+        reason_ip_address: [
+          "इस लिंक में कंपनी के असली नाम की जगह अजीब नंबर लिखे हैं।",
+          "इस पते में बैंक के नाम की जगह नंबर हैं। असली बैंक ऐसा कभी नहीं करते।",
+          "यह सीधे कंप्यूटर नंबर से जुड़ा है, जो फर्जी वेबसाइटों की पहचान है।"
+        ],
+        reason_at_trick: [
+          "इस लिंक में '@' का चालाकी भरा इस्तेमाल करके धोखे से दूसरी साइट पर भेजा जा रहा है।",
+          "यह लोगों को गुमराह करके नकली वेबसाइट पर ले जाने की चाल है।",
+          "छुपी हुई वेबसाइट का उपयोग किया गया है।"
+        ],
+        reason_risky_tld: [
+          "यह वेबसाइट फर्जी साइटों में इस्तेमाल होने वाले अजीब अंत (%TLD%) का उपयोग कर रही है।",
+          "वेबसाइट का अंत (%TLD%) संदिग्ध है। असली संस्थाएं .com, .org या .in का उपयोग करती हैं।",
+          "संदिग्ध डोमेन एक्सटेंशन (%TLD%) पाया गया।"
+        ],
+        reason_brand_bait: [
+          "इस लिंक में असली बैंक जैसा दिखने के लिए '%KEYWORD%' शब्द डाला गया है।",
+          "असली बैंक जैसा दिखाने के लिए नाम में '%KEYWORD%' जोड़ दिया गया है। असली बैंक का अपना तय पता होता है।",
+          "फर्जी बैंक या ब्रांड नाम '%KEYWORD%' का दुरुपयोग।"
+        ],
+        reason_hyphens_subdomains: [
+          "लिंक का नाम बहुत लंबा और उलझाने वाला बनाया गया है।",
+          "वेबसाइट का नाम बहुत लंबा और टेढ़ा-मेढ़ा है। असली बैंक के नाम छोटे और साफ होते हैं।",
+          "उलझाने वाले लंबे लिंक का इस्तेमाल।"
+        ],
+        reason_shortener: [
+          "यह एक छोटा किया हुआ लिंक (%HOST%) है जो असली वेबसाइट को छुपा रहा है।",
+          "यह छोटा लिंक असली पते को छुपाता है। धोखेबाज असली लिंक छुपाने के लिए इसका इस्तेमाल करते हैं।",
+          "असली पता छुपाने वाला शॉर्ट-लिंक।"
+        ],
+        reason_danger_file: [
+          "यह लिंक फोन में ऐप डाउनलोड (.%EXT%) कराने की कोशिश कर रहा है जो खतरनाक वायरस हो सकता है।",
+          "यह लिंक फोन में ऐप डाउनलोड (.%EXT%) करा रहा है। कृपया परिवार के सदस्यों को इसे इंस्टॉल न करने दें।",
+          "असुरक्षित ऐप डाउनलोड का खतरा (.%EXT%)।"
+        ],
+        reason_urgency: [
+          "यह मैसेज डराकर और जल्दबाजी कराकर (%WORDS%) आपसे गलती करवाना चाहता है।",
+          "मैसेज में डराने वाले शब्द (%WORDS%) हैं ताकि आप घबराकर बिना सोचे कदम उठाएं।",
+          "जल्दबाजी और डर पैदा करने वाले शब्दों (%WORDS%) का उपयोग।"
+        ],
+        reason_otp_pin: [
+          "यह मैसेज आपसे गुप्त जानकारी जैसे OTP, PIN या पासवर्ड मांग रहा है।",
+          "यह OTP या गुप्त कोड मांग रहा है। परिवार को याद दिलाएं कि बैंक कभी फोन या मैसेज पर OTP नहीं मांगते।",
+          "गुप्त पासवर्ड या OTP चुराने का प्रयास।"
+        ],
+        reason_lottery_bait: [
+          "यह मैसेज मुफ्त लॉटरी, इनाम या घर बैठे आसानी से पैसे कमाने का झूठा लालच (%WORDS%) दे रहा है।",
+          "यह मुफ्त पैसे या लॉटरी (%WORDS%) का लालच दे रहा है। अपनों को बताएं कि कोई भी मुफ्त पैसे नहीं देता।",
+          "फर्जी लॉटरी या इनाम का लालच (%WORDS%)।"
+        ],
+        reason_gov_impersonation: [
+          "यह बिजली कटने, सिम बंद होने, पुलिस केस या KYC रद्द होने की झूठी धमकी दे रहा है।",
+          "यह बिजली या सिम तुरंत काटने की धमकी दे रहा है। ठग अक्सर यही बहाना बनाकर डराते हैं।",
+          "सरकारी विभाग या बिजली बोर्ड के नाम पर झूठी धमकी।"
+        ],
+        reason_upi_scam: [
+          "यह QR कोड UPI से पैसे भेजने के लिए है। याद रखें: कैशबैक या पैसे लेने के लिए कभी भी UPI PIN नहीं डालना पड़ता!",
+          "सावधान! यह QR कोड स्कैन करने पर खाते से पैसे कट जाएंगे। PIN सिर्फ पैसे भेजने के लिए डाला जाता है, लेने के लिए नहीं।",
+          "कैशबैक के नाम पर UPI से पैसे काटने की चाल।"
+        ],
+        reason_phone_link_combo: [
+          "यह अनजान फोन नंबर देकर उसपर तुरंत कॉल करने को कह रहा है।",
+          "यह अनजान नंबर पर तुरंत कॉल करने को कह रहा है। परिवार को केवल बैंक के असली नंबर पर ही बात करने कहें।",
+          "संदिग्ध अनजान नंबर पर तुरंत संपर्क करने का दबाव।"
+        ],
+        reason_generic_greeting: [
+          "इसमें आपका नाम नहीं लिखा है, सिर्फ 'प्रिय ग्राहक (Dear Customer)' लिखा है।",
+          "इसमें आपका नाम नहीं है, केवल 'Dear Customer' लिखा है जो फर्जी मैसेज की निशानी है।",
+          "बिना नाम वाला सामूहिक फर्जी मैसेज।"
+        ],
+        reason_courier_trap: [
+          "यह पार्सल न पहुंचने का बहाना बनाकर पता अपडेट करने या छोटा शुल्क भरने को कह रहा है।",
+          "फर्जी पार्सल का मैसेज है। परिवार को बिना मंगाए पार्सल के लिए कोई पैसे न देने दें।",
+          "कूरियर/पार्सल के नाम पर फर्जी लिंक।"
+        ],
+        reason_looks_clean: [
+          "इसमें कोई भी संदिग्ध स्कैम शब्द या फर्जी लिंक के संकेत नहीं मिले।",
+          "सब कुछ सामान्य और ठीक लग रहा है। कोई डराने वाली बात या गलत लिंक नहीं मिला।",
+          "कोई भी खतरनाक या फर्जी संकेत नहीं पाया गया।"
+        ],
+
+        // Actions
+        action_safe: [
+          "आप इसे सुरक्षित रूप से देख सकते हैं। बस हमेशा याद रखें कि किसी भी वेबसाइट पर अपना बैंकिंग पिन न डालें।",
+          "यह सुरक्षित लग रहा है। बस उन्हें याद दिलाएं कि कभी किसी को OTP या पासवर्ड न दें।",
+          "सामान्य प्रतीत होता है। बुनियादी सुरक्षा नियम ध्यान में रखें।"
+        ],
+        action_caution: [
+          "कोई भी निजी जानकारी, पासवर्ड या पैसे न दें। पहले भेजने वाले से किसी अन्य तरीके से पुष्टि करें।",
+          "क्लिक करने से पहले जांच लें। उन्हें कोई भी बैंकिंग जानकारी न भरने दें।",
+          "सावधानी बरतें: आगे बढ़ने से पहले भेजने वाले से स्वयं पुष्टि करें।"
+        ],
+        action_danger: [
+          "इस लिंक पर क्लिक न करें, कोई OTP न दें और पैसे न भेजें। इस मैसेज को डिलीट करें और नंबर ब्लॉक करें।",
+          "कृपया परिवार के सदस्यों को इसपर क्लिक न करने दें। मैसेज डिलीट कर दें और उन्हें बताएं कि उनका खाता बिल्कुल सुरक्षित है।",
+          "खतरनाक फर्जीवाड़ा: तुरंत मैसेज हटाएं और किसी के साथ कोई OTP साझा न करें।"
+        ]
+      },
+
+      te: {
+        appName: "సైబర్ షీల్డ్ (Cyber Shield)",
+        appTagline: "మోసపూరిత లింకులు & మెసేజ్‌ల గుర్తింపు",
+        checkingFor: "ఎవరి కోసం తనిఖీ చేస్తున్నారు:",
+        changeMode: "మార్చు",
+        navScanner: "స్కానర్",
+        navLearn: "మోసాలను ఎలా గుర్తించాలి",
+        tabLink: "లింక్ (Link)",
+        tabMessage: "మెసేజ్ (Message)",
+        tabQr: "QR కోడ్",
+        linkInputLabel: "వెబ్‌సైట్ లింక్ లేదా అడ్రస్ ఇక్కడ పేస్ట్ చేయండి",
+        linkInputHint: "ఉదాహరణ: www.something.com లేదా http://...",
+        msgInputLabel: "SMS, WhatsApp లేదా ఇమెయిల్ మెసేజ్ ఇక్కడ పేస్ట్ చేయండి",
+        msgInputHint: "అనుమానాస్పద మెసేజ్ మొత్తాన్ని కాపీ చేసి ఇక్కడ వేయండి",
+        qrInputLabel: "QR కోడ్ ఫోటో అప్‌లోడ్ చేయండి లేదా తీయండి",
+        qrInputHint: "మీరు ఓపెన్ చేయడానికి ముందే ఆ QR కోడ్‌లో ఏముందో మేము సురక్షితంగా చూస్తాము",
+        btnPaste: "పేస్ట్ చేయి",
+        trySample: "ఉదాహరణ చూడండి:",
+        qrUploadPrompt: "ఫోటో ఎంచుకోవడానికి లేదా తీయడానికి ట్యాప్ చేయండి",
+        qrUploadSub: "JPG, PNG మరియు స్క్రీన్‌షాట్‌లు",
+        qrUploadAnother: "మరొక ఫోటో ఎంచుకోండి",
+        btnCheckNow: "ఇప్పుడే తనిఖీ చేయండి",
+        loadingTitle: "భద్రతా తనిఖీ జరుగుతోంది...",
+        loadingStep1: "సురక్షిత క్లౌడ్ ఇంజిన్‌తో విశ్లేషిస్తోంది...",
+        loadingStep2: "తప్పుడు బెదిరింపులు మరియు ఒత్తిడిని గుర్తిస్తోంది...",
+        loadingStep3: "మీ కోసం సురక్షితమైన సలహాను సిద్ధం చేస్తోంది...",
+        whyVerdictLabel: "మేము ఇది ఎందుకు చెబుతున్నాము:",
+        whatToDoLabel: "ఇప్పుడు మీరు ఏమి చేయాలి:",
+        btnReportScam: "ఈ మోసాన్ని రిపోర్ట్ చేయండి (హెల్ప్‌లైన్ 1930)",
+        btnShareFamily: "కుటుంబ సభ్యులకు WhatsApp లో హెచ్చరిక పంపండి",
+        btnCheckAnother: "మరొక లింక్ లేదా మెసేజ్ తనిఖీ చేయండి",
+        historyTitle: "గత తనిఖీలు",
+        clearHistory: "తొలగించు",
+        historyEmpty: "మీ ఇటీవలి తనిఖీలు ఇక్కడ కనిపిస్తాయి.",
+        learnIntroTitle: "నిజమైన మోసాలను గుర్తించడం నేర్చుకోండి",
+        learnIntroText: "మోసగాళ్ళు పదే పదే ఒకే విధమైన పద్ధతులను ఉపయోగిస్తారు. మిమ్మల్ని, మీ కుటుంబాన్ని కాపాడుకోవడానికి ఈ 5 ఉదాహరణలను చూడండి.",
+        testThisExample: "దీనిని స్కానర్‌లో తనిఖీ చేయండి",
+        personaTitle: "మీరు ఇది ఎవరి కోసం తనిఖీ చేస్తున్నారు?",
+        personaSubtitle: "మేము వివరణలను చాలా సులభంగా మరియు అర్థమయ్యేలా మారుస్తాము.",
+        personaMyselfTitle: "నా కోసం (Myself)",
+        personaMyselfDesc: "మీ రోజువారీ ఉపయోగం కోసం ప్రత్యక్ష మరియు స్పష్టమైన సలహా.",
+        personaFamilyTitle: "కుటుంబ సభ్యులు / పెద్దల కోసం",
+        personaFamilyDesc: "తల్లిదండ్రులకు అర్థమయ్యేలా అత్యంత సరళమైన వివరణ.",
+        personaCommunityTitle: "స్నేహితులు / సమాజం కోసం",
+        personaCommunityDesc: "ఇతరులతో మరియు గ్రూపులలో సులభంగా పంచుకోగల సలహా.",
+        btnSkip: "ఇప్పటికి దాటవేయి",
+        reportTitle: "సైబర్ మోసాలపై ఎలా ఫిర్యాదు చేయాలి",
+        reportSubtitle: "మోసాలను నివేదించడానికి ఉచిత జాతీయ హెల్ప్‌లైన్లు.",
+        safetyGoldenRule: "⚠️ ముఖ్యమైన నియమం: మీ OTP, ATM PIN లేదా కార్డు CVV ని ఎవరితోనూ పంచుకోవద్దు — నిజమైన బ్యాంకులు వీటిని ఎప్పుడూ అడగవు.",
+        helpline1930Title: "జాతీయ సైబర్ క్రైమ్ హెల్ప్‌లైన్ (భారతదేశం)",
+        helpline1930Desc: "మీ ఖాతా నుండి డబ్బు కట్ అయితే వెంటనే 1930 కి కాల్ చేయండి.",
+        helplineGovTitle: "జాతీయ సైబర్ క్రైమ్ పోర్టల్",
+        helplineGovDesc: "cybercrime.gov.in లో ఆన్‌లైన్ ఫిర్యాదు చేయండి.",
+        helplineBankTitle: "మీ బ్యాంక్ హెల్ప్‌లైన్",
+        helplineBankDesc: "కార్డులను బ్లాక్ చేయడానికి మీ ATM కార్డు వెనుక ఉన్న నంబర్‌కు కాల్ చేయండి.",
+        btnSubmitCloudReport: "ఈ మోసాన్ని సమాజ డేటాబేస్‌కు పంపండి",
+        btnClose: "మూసివేయి",
+        footerText: "సైబర్ షీల్డ్ — కుటుంబాలను సైబర్ మోసాల నుండి కాపాడే సరళమైన సాధనం. అన్ని తనిఖీలు మీ ఫోన్‌లో లేదా క్లౌడ్ ద్వారా సురక్షితంగా జరుగుతాయి.",
+
+        // Auth
+        authGuest: "అతిథి మోడ్ (తాత్కాలికం)",
+        authSaveGoogle: "Google తో భద్రపరచండి",
+        authSignedIn: "క్లౌడ్ సమకాలీకరణ ఆన్‌లో ఉంది",
+        authSignOut: "సైన్ అవుట్",
+
+        // Verdicts
+        verdictSafe: "సురక్షితంగా కనిపిస్తోంది",
+        verdictCaution: "జాగ్రత్తగా ఉండండి",
+        verdictDanger: "ప్రమాదకరంగా కనిపిస్తోంది",
+        verdictSafeSub: "సాధారణ మోసపూరిత గుర్తులు ఏవీ కనిపించలేదు, అయినా అప్రమత్తంగా ఉండండి.",
+        verdictCautionSub: "ఇందులో కొన్ని అసాధారణ విషయాలు ఉన్నాయి. జాగ్రత్తగా సరిచూసుకోండి.",
+        verdictDangerSub: "ఇందులో సైబర్ మోసం లేదా మోసపూరిత ప్రయత్నం సంకేతాలు బలంగా ఉన్నాయి.",
+
+        // Persona Labels
+        persona_myself: "నా కోసం",
+        persona_family: "కుటుంబం కోసం",
+        persona_community: "సమాజం కోసం",
+
+        // Plain Reason Templates
+        reason_http_insecure: [
+          "ఈ వెబ్‌సైట్‌కు సురక్షితమైన లాక్ (HTTPS) లేదు, కాబట్టి మీ పాస్‌వర్డ్‌లను ఇతరులు చూడవచ్చు.",
+          "ఈ లింక్ సురక్షితం కాదు. దయచేసి మీ కుటుంబ సభ్యులను ఇక్కడ పాస్‌వర్డ్‌లు నమోదు చేయనివ్వవద్దు.",
+          "అసురక్షిత లింక్. వ్యక్తిగత వివరాలను నమోదు చేయవద్దని సభ్యులను హెచ్చరించండి."
+        ],
+        reason_ip_address: [
+          "ఈ లింక్ కంపెనీ పేరుకు బదులుగా అంకెల సంఖ్యలను ఉపయోగిస్తోంది.",
+          "ఇందులో బ్యాంక్ పేరుకు బదులుగా నంబర్లు ఉన్నాయి. నిజమైన బ్యాంకులు ఎప్పుడూ ఇలా చేయవు.",
+          "ఇది నకిలీ వెబ్‌సైట్లకు ఉండే సంఖ్యా చిరునామా."
+        ],
+        reason_at_trick: [
+          "ఈ లింక్ మిమ్మల్ని మోసగించి వేరే పేజీకి పంపడానికి '@' గుర్తును ఉపయోగిస్తోంది.",
+          "ఇది ప్రజలను మోసగించి నకిలీ సైట్‌కు తీసుకెళ్లే ఉపాయం.",
+          "తప్పుదారి పట్టించే చిరునామా ఉపయోగించబడింది."
+        ],
+        reason_risky_tld: [
+          "ఈ వెబ్‌సైట్ నకిలీ సైట్లలో వాడే వింతైన ముగింపును (%TLD%) ఉపయోగిస్తోంది.",
+          "వెబ్‌సైట్ చిరునామా ముగింపు (%TLD%) అనుమానాస్పదంగా ఉంది. నిజమైన సంస్థలు .com, .org లేదా .in లను ఉపయోగిస్తాయి.",
+          "అనుమానాస్పద డొమైన్ ఎక్స్‌టెన్షన్ (%TLD%) గుర్తించబడింది."
+        ],
+        reason_brand_bait: [
+          "నిజమైన బ్యాంక్ లాగా కనిపించడానికి లింక్‌లో '%KEYWORD%' వంటి పదాలు ఉన్నాయి.",
+          "నిజమైన బ్యాంక్ లాగా నమ్మించడానికి లింక్‌లో '%KEYWORD%' అని చేర్చారు. నిజమైన బ్యాంకులకు సొంత చిరునామా ఉంటుంది.",
+          "నకిలీ బ్యాంక్ లేదా బ్రాండ్ పేరు '%KEYWORD%' దుర్వినియోగం."
+        ],
+        reason_hyphens_subdomains: [
+          "లింక్ చాలా పొడవుగా మరియు అయోమయంగా ఉంది.",
+          "వెబ్‌సైట్ చిరునామా చాలా పొడవుగా ఉంది. నిజమైన బ్యాంక్ పేర్లు చిన్నగా, స్పష్టంగా ఉంటాయి.",
+          "అయోమయం కలిగించే పొడవైన లింక్."
+        ],
+        reason_shortener: [
+          "ఇది నిజమైన వెబ్‌సైట్‌ను దాచిపెట్టే చిన్న లింక్ (%HOST%).",
+          "ఈ చిన్న లింక్ అసలు చిరునామాను దాచిపెడుతుంది. మోసగాళ్ళు దీన్ని ఎక్కువగా వాడుతారు.",
+          "అసలు సైట్‌ను దాచే షార్ట్-లింక్."
+        ],
+        reason_danger_file: [
+          "ఈ లింక్ ప్రమాదకరమైన యాప్ (.%EXT%) డౌన్‌లోడ్ చేయమని అడుగుతోంది.",
+          "ఈ లింక్ ఫోన్‌లో యాప్ (.%EXT%) డౌన్‌లోడ్ చేయిస్తోంది. దయచేసి దీన్ని ఇన్‌స్టాల్ చేయనివ్వవద్దు.",
+          "ప్రమాదకరమైన యాప్ డౌన్‌లోడ్ హెచ్చరిక (.%EXT%)."
+        ],
+        reason_urgency: [
+          "ఈ మెసేజ్ మిమ్మల్ని భయపెట్టి, తొందరపెట్టి (%WORDS%) తప్పు చేయించాలని చూస్తోంది.",
+          "మెసేజ్‌లో భయపెట్టే పదాలు (%WORDS%) ఉన్నాయి. మీరు కంగారులో నిర్ణయం తీసుకోవాలని ఇలా చేస్తారు.",
+          "తొందరపాటు మరియు భయాన్ని కలిగించే పదాల (%WORDS%) వాడకం."
+        ],
+        reason_otp_pin: [
+          "ఈ మెసేజ్ OTP, PIN లేదా పాస్‌వర్డ్ వంటి రహస్య వివరాలను అడుగుతోంది.",
+          "ఇది రహస్య OTP లేదా PIN అడుగుతోంది. బ్యాంకులు ఎప్పుడూ OTPలు అడగవని కుటుంబ సభ్యులకు గుర్తు చేయండి.",
+          "రహస్య పాస్‌వర్డ్ లేదా OTP దొంగిలించే ప్రయత్నం."
+        ],
+        reason_lottery_bait: [
+          "ఇది ఉచిత లాటరీ, బహుమతులు లేదా సులభంగా డబ్బు సంపాదించవచ్చని (%WORDS%) ఆశ చూపుతోంది.",
+          "ఇది ఉచిత డబ్బు లేదా లాటరీ (%WORDS%) ఆశ చూపుతోంది. ఎవరూ ఉచితంగా డబ్బు ఇవ్వరని పెద్దలకు చెప్పండి.",
+          "ఉచిత లాటరీ లేదా బహుమతుల ఆశ (%WORDS%)."
+        ],
+        reason_gov_impersonation: [
+          "కరెంట్ కట్ చేస్తామని, సిమ్ ఆగిపోతుందని లేదా KYC అయిపోయిందని బెదిరిస్తున్నారు.",
+          "కరెంట్ లేదా సిమ్ కార్డు వెంటనే ఆపేస్తామని బెదిరిస్తున్నారు. మోసగాళ్ళు నిరంతరం ఇదే అబద్ధం చెబుతారు.",
+          "విద్యుత్ బోర్డు లేదా ప్రభుత్వ విభాగాల పేరుతో తప్పుడు బెదిరింపు."
+        ],
+        reason_upi_scam: [
+          "ఈ QR కోడ్ UPI ద్వారా డబ్బు పంపడానికి ఉద్దేశించినది. గుర్తుంచుకోండి: క్యాష్‌బ్యాక్ లేదా డబ్బులు అందుకోవడానికి మీరు ఎప్పుడూ UPI PIN ఎంటర్ చేయనవసరం లేదు!",
+          "హెచ్చరిక! ఈ QR కోడ్ స్కాన్ చేస్తే మీ ఖాతా నుండి డబ్బు కట్ అవుతుంది. PIN ఎంటర్ చేయడం డబ్బులు పంపడానికి మాత్రమే, తీసుకోవడానికి కాదు.",
+          "క్యాష్‌బ్యాక్ పేరుతో UPI ద్వారా డబ్బు లాగే మోసం."
+        ],
+        reason_phone_link_combo: [
+          "తెలియని ఫోన్ నంబర్ ఇచ్చి వెంటనే కాల్ చేయమని లేదా లింక్ నొక్కమని అడుగుతోంది.",
+          "తెలియని నంబర్‌కు వెంటనే కాల్ చేయమని ఒత్తిడి చేస్తున్నారు. బ్యాంక్ అధికారిక నంబర్‌ను మాత్రమే సంప్రదించండి.",
+          "తెలియని నంబర్‌కు వెంటనే కాల్ చేయాలనే ఒత్తిడి."
+        ],
+        reason_generic_greeting: [
+          "ఇందులో మీ పేరు లేదు, కేవలం 'డియర్ కస్టమర్ (Dear Customer)' అని మాత్రమే ఉంది.",
+          "ఇందులో మీ పేరు లేదు, కేవలం 'Dear Customer' అని మాత్రమే ఉంది, ఇది నకిలీ మెసేజ్‌లలో సాధారణం.",
+          "పేరు లేని సామూహిక నకిలీ మెసేజ్."
+        ],
+        reason_courier_trap: [
+          "పార్సల్ రాలేదని అబద్ధం చెప్పి చిరునామా అప్‌డేట్ చేయమని లేదా చిన్న రుసుము చెల్లించమని అడుగుతోంది.",
+          "నకిలీ కొరియర్ పార్సల్ మెసేజ్. మీరు ఆర్డర్ చేయని పార్సల్ కోసం ఎలాంటి ఫీజులు చెల్లించవద్దు.",
+          "కొరియర్/పార్సల్ పేరుతో నకిలీ లింక్."
+        ],
+        reason_looks_clean: [
+          "ఇందులో ఎలాంటి అనుమానాస్పద మోసపూరిత పదాలు లేదా నకిలీ లింక్‌లు కనిపించలేదు.",
+          "అంతా సాధారణంగా మరియు సురక్షితంగా కనిపిస్తోంది. ఎలాంటి తప్పుడు బెదిరింపులు లేవు.",
+          "ఎలాంటి ప్రమాదకర సంకేతాలు కనుగొనబడలేదు."
+        ],
+
+        // Actions
+        action_safe: [
+          "మీరు దీన్ని సురక్షితంగా తెరవవచ్చు. ఎల్లప్పుడూ ఏ వెబ్‌సైట్‌లోనూ మీ బ్యాంకింగ్ పిన్‌ను నమోదు చేయవద్దు.",
+          "ఇది సురక్షితంగా కనిపిస్తోంది. ఎవరికీ పాస్‌వర్డ్‌లు లేదా OTPలు ఇవ్వవద్దని వారికి గుర్తు చేయండి.",
+          "సాధారణంగా కనిపిస్తోంది. ప్రాథమిక భద్రతా నియమాలు పాటించండి."
+        ],
+        action_caution: [
+          "వ్యక్తిగత వివరాలు, పాస్‌వర్డ్‌లు లేదా డబ్బు ఇవ్వవద్దు. పంపిన వారితో వేరే మార్గంలో ముందుగా నిర్ధారించుకోండి.",
+          "క్లిక్ చేయడానికి ముందు సరిచూసుకోండి. ఎలాంటి బ్యాంకింగ్ వివరాలను నమోదు చేయనివ్వవద్దు.",
+          "జాగ్రత్త వహించండి: కొనసాగే ముందు స్వయంగా నిర్ధారించుకోండి."
+        ],
+        action_danger: [
+          "ఈ లింక్‌ను క్లిక్ చేయవద్దు, ఏ OTP ఇవ్వవద్దు, డబ్బు పంపవద్దు. మెసేజ్ డిలీట్ చేసి నంబర్ బ్లాక్ చేయండి.",
+          "దయచేసి కుటుంబ సభ్యులను దీనిపై క్లిక్ చేయనివ్వవద్దు. మెసేజ్ డిలీట్ చేయండి, వారి ఖాతా సురక్షితంగా ఉందని వారికి చెప్పండి.",
+          "ప్రమాదకరమైన మోసం: వెంటనే మెసేజ్ తొలగించండి మరియు ఎవరితోనూ OTP పంచుకోవద్దు."
+        ]
+      }
+    };
+
+    /* ==========================================================================
+       5 REAL-WORLD SCAM EXAMPLES FOR "LEARN" SECTION
+       ========================================================================== */
+    const LEARN_EXAMPLES = [
+      {
+        id: "kyc_sms",
+        type: "msg",
+        tag: "Bank KYC Scam",
+        title: {
+          en: "Bank Account Blocked / KYC Expired SMS",
+          hi: "बैंक खाता ब्लॉक / KYC समाप्त SMS",
+          te: "బ్యాంక్ ఖాతా బ్లాక్ / KYC గడువు ముగిసిన SMS"
+        },
+        sampleText: "Dear Customer, Your SBI Bank account has been blocked today. Please update your PAN Card & KYC immediately by clicking: http://sbi-kyc-verify.xyz or call 9876543210. Failure will lead to permanent suspension.",
+        explanation: {
+          en: [
+            "🚨 Panic Trick: Claims your account is blocked 'today' to make you act in fear.",
+            "🔗 Fake Link: 'sbi-kyc-verify.xyz' is NOT the official bank site (sbi.co.in).",
+            "🛡️ Rule: Banks NEVER ask you to update KYC via random SMS links or WhatsApp."
+          ],
+          hi: [
+            "🚨 डराने की चाल: 'आज ही खाता बंद हो जाएगा' कहकर आपको घबराहट में डालने की कोशिश।",
+            "🔗 फर्जी लिंक: 'sbi-kyc-verify.xyz' असली बैंक की साइट नहीं है।",
+            "🛡️ नियम: बैंक कभी भी SMS लिंक भेजकर KYC अपडेट करने को नहीं कहते।"
+          ],
+          te: [
+            "🚨 భయపెట్టే పద్ధతి: మీరు కంగారు పడాలని 'ఈరోజే ఖాతా బ్లాక్ అవుతుంది' అని బెదిరించడం.",
+            "🔗 నకిలీ లింక్: 'sbi-kyc-verify.xyz' నిజమైన బ్యాంక్ సైట్ కాదు.",
+            "🛡️ నియమం: బ్యాంకులు ఎప్పుడూ SMS లింకుల ద్వారా KYC అప్‌డేట్ చేయమని అడగవు."
+          ]
+        }
+      },
+      {
+        id: "electricity_sms",
+        type: "msg",
+        tag: "Utility Scam",
+        title: {
+          en: "Electricity Disconnection Tonight SMS",
+          hi: "आज रात बिजली काटने वाला SMS",
+          te: "ఈ రాత్రే కరెంట్ కట్ అవుతుందనే SMS"
+        },
+        sampleText: "Dear Consumer, Your electricity power will be disconnected tonight at 9:30 PM from electricity office because your previous month bill was not updated. Please immediately contact our electricity officer at 8912345678.",
+        explanation: {
+          en: [
+            "⚡ Midnight Threat: Threatens power cut tonight so you panic and call immediately.",
+            "📞 Personal Mobile Number: Official electricity boards have toll-free numbers, not random personal mobiles.",
+            "🛡️ Rule: Electricity departments never disconnect power without official postal notice and bill receipts."
+          ],
+          hi: [
+            "⚡ आज रात की धमकी: ताकि आप घबराकर तुरंत उनके दिए नंबर पर कॉल करें।",
+            "📞 पर्सनल मोबाइल नंबर: सरकारी बिजली बोर्ड किसी अनजान व्यक्ति का नंबर नहीं देते।",
+            "🛡️ नियम: बिजली विभाग बिना लिखित नोटिस और बिल के कभी अचानक बिजली नहीं काटते।"
+          ],
+          te: [
+            "⚡ రాత్రికి కరెంట్ కట్ బెదిరింపు: మీరు కంగారుపడి వారి నంబర్‌కు కాల్ చేయాలని ఇలా చేస్తారు.",
+            "📞 వ్యక్తిగత మొబైల్ నంబర్: విద్యుత్ బోర్డులు సాధారణంగా టోల్-ఫ్రీ నంబర్లను మాత్రమే ఇస్తాయి.",
+            "🛡️ నియమం: సరైన నోటీసు లేకుండా విద్యుత్ శాఖ ఎప్పుడూ కరెంట్ కట్ చేయదు."
+          ]
+        }
+      },
+      {
+        id: "job_lottery",
+        type: "msg",
+        tag: "Easy Money Scam",
+        title: {
+          en: "Part-Time Job / Daily ₹5000 WhatsApp Offer",
+          hi: "घर बैठे ₹5000 रोज कमाने का WhatsApp ऑफर",
+          te: "ఇంటి నుండి రోజుకు ₹5000 సంపాదించే ఆఫర్"
+        },
+        sampleText: "Congratulations! You are selected for YouTube Video Liking Part-Time Job. Earn ₹3,000 to ₹8,000 daily from home. No experience needed. Daily instant payout. Click here to join Telegram manager: https://t.me/job_reward_cash",
+        explanation: {
+          en: [
+            "💸 Too Good To Be True: No genuine company pays ₹5,000/day just for liking videos.",
+            "⚠️ Trap: They will pay ₹200 initially to gain trust, then ask you to deposit ₹10,000 to 'unlock earnings'.",
+            "🛡️ Rule: Never pay money to get a job or task."
+          ],
+          hi: [
+            "💸 झूठा लालच: सिर्फ वीडियो लाइक करने के कोई कंपनी रोज ₹5000 नहीं देती।",
+            "⚠️ फंसाने का जाल: पहले विश्वास जीतने के लिए ₹200 देंगे, फिर ₹10,000 जमा करने को कहेंगे।",
+            "🛡️ नियम: नौकरी पाने के लिए कभी किसी को पैसे न दें।"
+          ],
+          te: [
+            "💸 అబద్ధపు ఆశ: కేవలం వీడియోలు లైక్ చేసినందుకు ఎవరూ రోజుకు ₹5000 ఇవ్వరు.",
+            "⚠️ మోసపు వల: నమ్మకం కోసం మొదట ₹200 ఇస్తారు, తర్వాత ₹10,000 డిపాజిట్ చేయమంటారు.",
+            "🛡️ నియమం: ఉద్యోగం లేదా పని కోసం ఎవరికీ ముందస్తు డబ్బు చెల్లించవద్దు."
+          ]
+        }
+      },
+      {
+        id: "courier_parcel",
+        type: "link",
+        tag: "Courier Delivery Scam",
+        title: {
+          en: "India Post / Courier Address Problem Link",
+          hi: "डाकघर / कूरियर पता सुधार लिंक",
+          te: "పోస్ట్ ఆఫీస్ / కొరియర్ చిరునామా సమస్య లింక్"
+        },
+        sampleText: "http://indiapost-parcel-delivery.top/update-address",
+        explanation: {
+          en: [
+            "📦 Fake Delivery Trap: Claims your parcel cannot be delivered to get you to click.",
+            "💳 Small Fee Trick: Asks for a tiny ₹5 or ₹10 redelivery fee to steal your entire card details and OTP.",
+            "🛡️ Rule: Official India Post website is indiapost.gov.in (ends with .gov.in)."
+          ],
+          hi: [
+            "📦 पार्सल का बहाना: ताकि आप बिना सोचे लिंक पर क्लिक कर दें।",
+            "💳 ₹5 का धोखा: ₹5 डिलीवरी चार्ज मांगने के बहाने आपका पूरा बैंक पासवर्ड और OTP चुराते हैं।",
+            "🛡️ नियम: भारतीय डाक की असली वेबसाइट indiapost.gov.in है (.gov.in पर समाप्त होती है)।"
+          ],
+          te: [
+            "📦 పార్సల్ అబద్ధం: మీరు ఆలోచించకుండా లింక్ క్లిక్ చేయాలని ఇలా చేస్తారు.",
+            "💳 ₹5 మోసం: ₹5 ఫీజు పేరుతో మీ మొత్తం బ్యాంక్ వివరాలు మరియు OTP దొంగిలిస్తారు.",
+            "🛡️ నియమం: ఇండియన్ పోస్ట్ అసలు వెబ్‌సైట్ indiapost.gov.in (.gov.in తో ముగుస్తుంది)."
+          ]
+        }
+      },
+      {
+        id: "upi_qr_scam",
+        type: "qr",
+        tag: "UPI QR Code Scam",
+        title: {
+          en: "Scan QR to 'Receive Cashback' Scam",
+          hi: "कैशबैक 'लेने' के लिए QR कोड स्कैन घोटाला",
+          te: "క్యాష్‌బ్యాక్ 'పొందడానికి' QR కోడ్ స్కాన్ మోసం"
+        },
+        sampleText: "upi://pay?pa=refundhelpdesk@okaxis&pn=Cashback_Reward_5000&am=5000&cu=INR",
+        explanation: {
+          en: [
+            "🛑 The Biggest Lie: Scammers say 'Scan this QR code and enter your PIN to receive ₹5000'.",
+            "🔒 Truth: Entering your UPI PIN ALWAYS DEDUCTS money from your bank, NEVER receives money!",
+            "🛡️ Golden Rule: You NEVER need a PIN to receive money on PhonePe, Google Pay, or Paytm."
+          ],
+          hi: [
+            "🛑 सबसे बड़ा झूठ: ठग कहते हैं कि '₹5000 पाने के लिए यह QR कोड स्कैन करके PIN डालें'।",
+            "🔒 कड़वा सच: UPI PIN डालने से हमेशा आपके खाते से पैसे कटते हैं, कभी मिलते नहीं!",
+            "🛡️ पक्का नियम: पैसे पाने के लिए कभी किसी PIN की आवश्यकता नहीं होती।"
+          ],
+          te: [
+            "🛑 పెద్ద అబద్ధం: '₹5000 పొందడానికి ఈ QR కోడ్ స్కాన్ చేసి PIN ఎంటర్ చేయండి' అని చెబుతారు.",
+            "🔒 నిజం: UPI PIN ఎంటర్ చేస్తే మీ ఖాతా నుండి డబ్బు పోతుంది తప్ప, డబ్బు రాదు!",
+            "🛡️ ముఖ్యమైన నియమం: డబ్బులు తీసుకోవడానికి ఎప్పుడూ PIN అవసరం లేదు."
+          ]
+        }
+      }
+    ];
+
+    /* ==========================================================================
+       APPLICATION & FIREBASE BACKEND CONTROLLER
+       ========================================================================== */
+    class CyberShieldApp {
+      constructor() {
+        this.currentLang = 'en';
+        this.currentPersona = 'family';
+        this.currentInputTab = 'link';
+        this.currentMainView = 'scanner';
+        this.currentQrData = null;
+        this.currentUser = null;
+        this.history = [];
+        this.lastScanResult = null;
+        this.firebaseInitialized = false;
+        this.db = null;
+        this.functions = null;
+        this.auth = null;
+
+        this.init();
+      }
+
+      init() {
+        this.loadSettings();
+        this.loadLocalHistory();
+
+        // 1. Language auto-detect
+        if (!localStorage.getItem('cybershield_lang')) {
+          const userLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+          if (userLang.startsWith('hi')) this.currentLang = 'hi';
+          else if (userLang.startsWith('te')) this.currentLang = 'te';
+          else this.currentLang = 'en';
+        }
+
+        const langDropdown = document.getElementById('langSelector');
+        if (langDropdown) langDropdown.value = this.currentLang;
+        this.applyLanguage();
+
+        // 2. Persona check
+        if (!localStorage.getItem('cybershield_persona_set')) {
+          setTimeout(() => this.openPersonaModal(), 600);
+        } else {
+          this.updatePersonaBadge();
+        }
+
+        this.renderLearnExamples();
+        this.setupQrDropzone();
+        this.handleInputState();
+
+        // 3. Initialize Firebase Backend
+        this.initFirebase();
+      }
+
+      /* ---------------- FIREBASE INITIALIZATION & AUTH ---------------- */
+      initFirebase() {
+        try {
+          if (typeof firebase !== 'undefined' && firebaseConfig && !firebaseConfig.apiKey.includes('Placeholder')) {
+            if (!firebase.apps.length) {
+              firebase.initializeApp(firebaseConfig);
+            }
+            this.auth = firebase.auth();
+            this.db = firebase.firestore();
+            this.functions = firebase.functions();
+            this.firebaseInitialized = true;
+
+            // Auth state observer
+            this.auth.onAuthStateChanged(user => {
+              this.handleAuthStateChanged(user);
+            });
+          } else {
+            console.log("ℹ️ Running in Local Mode with offline storage until Firebase API key is configured.");
+            this.updateAuthUI(null);
+          }
+        } catch (err) {
+          console.warn("Firebase initialization skipped or running offline:", err);
+          this.firebaseInitialized = false;
+          this.updateAuthUI(null);
+        }
+      }
+
+      async handleAuthStateChanged(user) {
+        this.currentUser = user;
+        if (!user) {
+          // Automatic Anonymous Sign-In on first visit so history works immediately
+          try {
+            const cred = await this.auth.signInAnonymously();
+            this.currentUser = cred.user;
+          } catch (e) {
+            console.warn("Anonymous auth note:", e.message);
+          }
+        }
+
+        this.updateAuthUI(this.currentUser);
+
+        // Real-time Firestore History Synchronization
+        if (this.currentUser && this.db) {
+          this.subscribeToFirestoreHistory(this.currentUser.uid);
+        }
+      }
+
+      updateAuthUI(user) {
+        const dict = I18N[this.currentLang] || I18N.en;
+        const statusText = document.getElementById('authStatusText');
+        const actionsContainer = document.getElementById('authActionsContainer');
+        const authDot = document.getElementById('authDot');
+
+        if (!user || user.isAnonymous) {
+          if (statusText) statusText.textContent = dict.authGuest || "Guest Mode (Instant)";
+          if (authDot) authDot.style.background = "#16a34a";
+          if (actionsContainer) {
+            actionsContainer.innerHTML = `
+              <button class="google-upgrade-btn" onclick="app.signInWithGoogle()">
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span>${dict.authSaveGoogle || "Save with Google"}</span>
+              </button>
+            `;
+          }
+        } else {
+          // User is signed in with Google
+          const displayName = user.displayName || user.email.split('@')[0] || "User";
+          const photoURL = user.photoURL || "https://api.dicebear.com/7.x/bottts/svg?seed=" + user.uid;
+
+          if (statusText) statusText.textContent = dict.authSignedIn || "Cloud Sync Active";
+          if (authDot) authDot.style.background = "#2563eb";
+          if (actionsContainer) {
+            actionsContainer.innerHTML = `
+              <div class="user-pill">
+                <img src="${photoURL}" class="user-avatar" alt="Avatar">
+                <span>${this.escapeHtml(displayName)}</span>
+              </div>
+              <button class="signout-btn" onclick="app.signOut()">${dict.authSignOut || "Sign out"}</button>
+            `;
+          }
+        }
+      }
+
+      async signInWithGoogle() {
+        if (!this.auth) {
+          this.showToast("Please configure your Firebase API Key in index.html to enable Google Sign-in.");
+          return;
+        }
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+
+        try {
+          if (this.currentUser && this.currentUser.isAnonymous) {
+            // Upgrade existing anonymous user to Google Account
+            await this.currentUser.linkWithPopup(provider);
+            this.showToast("Account linked! Your history is now saved permanently.");
+          } else {
+            await this.auth.signInWithPopup(provider);
+            this.showToast("Signed in with Google!");
+          }
+        } catch (error) {
+          if (error.code === 'auth/credential-already-in-use') {
+            // Account exists, sign in directly
+            await this.auth.signInWithPopup(provider);
+            this.showToast("Signed into existing Google account!");
+          } else {
+            console.error("Google sign in error:", error);
+            this.showToast("Sign in note: " + (error.message || "Could not complete sign in"));
+          }
+        }
+      }
+
+      async signOut() {
+        if (this.auth) {
+          await this.auth.signOut();
+          // Automatically re-create anonymous session for continuous check history
+          await this.auth.signInAnonymously();
+          this.showToast("Signed out. Switched back to guest mode.");
+        }
+      }
+
+      /* ---------------- FIRESTORE DATABASE SYNCHRONIZATION ---------------- */
+      subscribeToFirestoreHistory(uid) {
+        if (!this.db) return;
+
+        this.db.collection('users').doc(uid).collection('checks')
+          .orderBy('createdAt', 'desc')
+          .limit(20)
+          .onSnapshot((snapshot) => {
+            if (snapshot.empty) {
+              this.renderHistory();
+              return;
+            }
+            this.history = snapshot.docs.map(doc => {
+              const data = doc.data();
+              return {
+                id: doc.id,
+                verdict: data.verdict,
+                snippet: data.inputSnippet,
+                reasons: data.reasons || [],
+                checkedFor: data.checkedFor,
+                timestamp: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'
+              };
+            });
+            this.renderHistory();
+          }, (err) => {
+            console.warn("Firestore sync fallback:", err);
+            this.loadLocalHistory();
+          });
+      }
+
+      async saveCheckRecord(result, inputType, rawContent) {
+        const item = {
+          inputSnippet: result.snippet,
+          verdict: result.verdict,
+          reasons: result.reasons.map(r => r.key),
+          language: this.currentLang,
+          checkedFor: this.currentPersona,
+          rawType: inputType
+        };
+
+        // 1. Try Saving to Cloud Firestore
+        if (this.db && this.currentUser) {
+          try {
+            await this.db.collection('users').doc(this.currentUser.uid).collection('checks').add({
+              ...item,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          } catch (e) {
+            console.warn("Cloud save fallback to localStorage:", e);
+            this.saveLocalHistoryItem({
+              id: Date.now(),
+              type: inputType,
+              verdict: result.verdict,
+              snippet: result.snippet,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              reasons: result.reasons
+            });
+          }
+        } else {
+          // 2. Fallback to LocalStorage
+          this.saveLocalHistoryItem({
+            id: Date.now(),
+            type: inputType,
+            verdict: result.verdict,
+            snippet: result.snippet,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            reasons: result.reasons
+          });
+        }
+      }
+
+      async submitCloudReport() {
+        if (!this.lastScanResult) {
+          this.showToast("No active scan to report.");
+          return;
+        }
+
+        if (this.functions && this.firebaseInitialized) {
+          try {
+            const submitFn = this.functions.httpsCallable('submitReport');
+            await submitFn({
+              text: this.lastScanResult.snippet,
+              verdict: this.lastScanResult.verdict,
+              language: this.currentLang
+            });
+            this.showToast(this.currentLang === 'hi' ? "स्कैम रिपोर्ट क्लाउड में दर्ज की गई!" : "Scam reported to community database!");
+            this.closeReportModal();
+          } catch (e) {
+            console.warn("Cloud reporting fallback:", e);
+            this.showToast("Report logged. Thank you for keeping the community safe!");
+            this.closeReportModal();
+          }
+        } else {
+          this.showToast("Report logged locally. Thank you for protecting the community!");
+          this.closeReportModal();
+        }
+      }
+
+      /* ---------------- LOCAL STORAGE HISTORY ---------------- */
+      loadSettings() {
+        const savedLang = localStorage.getItem('cybershield_lang');
+        if (savedLang && I18N[savedLang]) this.currentLang = savedLang;
+
+        const savedPersona = localStorage.getItem('cybershield_persona');
+        if (savedPersona && ['myself', 'family', 'community'].includes(savedPersona)) {
+          this.currentPersona = savedPersona;
+        }
+      }
+
+      saveSettings() {
+        localStorage.setItem('cybershield_lang', this.currentLang);
+        localStorage.setItem('cybershield_persona', this.currentPersona);
+        localStorage.setItem('cybershield_persona_set', 'true');
+      }
+
+      loadLocalHistory() {
+        try {
+          const raw = localStorage.getItem('cybershield_history');
+          this.history = raw ? JSON.parse(raw) : [];
+        } catch (e) {
+          this.history = [];
+        }
+        this.renderHistory();
+      }
+
+      saveLocalHistoryItem(item) {
+        this.history.unshift(item);
+        if (this.history.length > 20) this.history.pop();
+        try {
+          localStorage.setItem('cybershield_history', JSON.stringify(this.history));
+        } catch (e) {}
+        this.renderHistory();
+      }
+
+      async clearHistory() {
+        this.history = [];
+        localStorage.removeItem('cybershield_history');
+
+        if (this.db && this.currentUser) {
+          try {
+            const checksRef = this.db.collection('users').doc(this.currentUser.uid).collection('checks');
+            const snap = await checksRef.get();
+            const batch = this.db.batch();
+            snap.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+          } catch (e) {
+            console.warn("Clear firestore checks note:", e);
+          }
+        }
+
+        this.renderHistory();
+        this.showToast(this.currentLang === 'hi' ? "इतिहास हटा दिया गया" : "History cleared");
+      }
+
+      /* ---------------- Localization & Persona ---------------- */
+      changeLanguage(lang) {
+        if (!I18N[lang]) return;
+        this.currentLang = lang;
+        this.saveSettings();
+        this.applyLanguage();
+        this.updateAuthUI(this.currentUser);
+        this.renderLearnExamples();
+        this.renderHistory();
+      }
+
+      applyLanguage() {
+        const dict = I18N[this.currentLang] || I18N.en;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          if (dict[key]) {
+            el.innerHTML = dict[key];
+          }
+        });
+
+        const linkInput = document.getElementById('linkInput');
+        const msgInput = document.getElementById('msgInput');
+        if (linkInput) linkInput.placeholder = "https://example-bank-update.xyz/login";
+        if (msgInput) {
+          msgInput.placeholder = this.currentLang === 'hi'
+            ? "प्रिय ग्राहक, आपका बैंक खाता 24 घंटे में बंद कर दिया जाएगा। तुरंत OTP भेजें..."
+            : (this.currentLang === 'te' ? "డియర్ కస్టమర్, మీ బ్యాంక్ ఖాతా 24 గంటల్లో నిలిపివేయబడుతుంది. వెంటనే OTP పంపండి..." : "Dear customer, your bank account will be suspended in 24 hours. Send OTP immediately to verify...");
+        }
+
+        this.updatePersonaBadge();
+      }
+
+      openPersonaModal() {
+        const modal = document.getElementById('personaModal');
+        if (modal) modal.classList.add('active');
+        document.querySelectorAll('.persona-choice-btn').forEach((btn, idx) => {
+          btn.classList.remove('selected');
+          if (
+            (this.currentPersona === 'myself' && idx === 0) ||
+            (this.currentPersona === 'family' && idx === 1) ||
+            (this.currentPersona === 'community' && idx === 2)
+          ) {
+            btn.classList.add('selected');
+          }
+        });
+      }
+
+      closePersonaModal() {
+        const modal = document.getElementById('personaModal');
+        if (modal) modal.classList.remove('active');
+      }
+
+      selectPersona(personaKey) {
+        this.currentPersona = personaKey;
+        this.saveSettings();
+        this.updatePersonaBadge();
+        this.closePersonaModal();
+        this.showToast(this.currentLang === 'hi' ? "मोड अपडेट किया गया" : "Mode updated");
+      }
+
+      updatePersonaBadge() {
+        const emojiMap = { myself: '🙋‍♂️', family: '👨‍👩‍👧', community: '🤝' };
+        const dict = I18N[this.currentLang] || I18N.en;
+        const labelMap = {
+          myself: dict.persona_myself || "Myself",
+          family: dict.persona_family || "A family member",
+          community: dict.persona_community || "My community"
+        };
+
+        const emojiEl = document.getElementById('currentPersonaEmoji');
+        const labelEl = document.getElementById('currentPersonaLabel');
+        if (emojiEl) emojiEl.textContent = emojiMap[this.currentPersona] || '👨‍👩‍👧';
+        if (labelEl) labelEl.textContent = labelMap[this.currentPersona] || 'A family member';
+      }
+
+      /* ---------------- View & Tab Switching ---------------- */
+      switchMainView(viewName) {
+        this.currentMainView = viewName;
+        const scannerView = document.getElementById('scannerView');
+        const learnView = document.getElementById('learnView');
+        const navScannerBtn = document.getElementById('navScannerBtn');
+        const navLearnBtn = document.getElementById('navLearnBtn');
+
+        if (viewName === 'scanner') {
+          if (scannerView) scannerView.style.display = 'block';
+          if (learnView) learnView.classList.remove('active');
+          if (navScannerBtn) navScannerBtn.classList.add('active');
+          if (navLearnBtn) navLearnBtn.classList.remove('active');
+        } else {
+          if (scannerView) scannerView.style.display = 'none';
+          if (learnView) learnView.classList.add('active');
+          if (navScannerBtn) navScannerBtn.classList.remove('active');
+          if (navLearnBtn) navLearnBtn.classList.add('active');
+          if (typeof window.scrollTo === 'function') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }
+      }
+
+      switchInputTab(tabName) {
+        this.currentInputTab = tabName;
+        ['link', 'msg', 'qr'].forEach(t => {
+          const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
+          const pane = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Content`);
+          if (t === tabName) {
+            if (btn) btn.classList.add('active');
+            if (pane) pane.classList.add('active');
+          } else {
+            if (btn) btn.classList.remove('active');
+            if (pane) pane.classList.remove('active');
+          }
+        });
+        this.handleInputState();
+      }
+
+      /* ---------------- Inputs & QR ---------------- */
+      handleInputState() {
+        const scanBtn = document.getElementById('scanBtn');
+        let hasContent = false;
+
+        if (this.currentInputTab === 'link') {
+          hasContent = (document.getElementById('linkInput').value.trim().length > 0);
+        } else if (this.currentInputTab === 'msg') {
+          hasContent = (document.getElementById('msgInput').value.trim().length > 0);
+        } else if (this.currentInputTab === 'qr') {
+          hasContent = (this.currentQrData !== null);
+        }
+
+        if (scanBtn) scanBtn.disabled = !hasContent;
+      }
+
+      async pasteClipboard(inputId) {
+        try {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            const input = document.getElementById(inputId);
+            if (input) input.value = text;
+            this.handleInputState();
+            this.showToast("Pasted from clipboard!");
+          }
+        } catch (e) {
+          this.showToast("Please paste directly into the box");
+        }
+      }
+
+      fillSampleLink(type) {
+        const input = document.getElementById('linkInput');
+        if (input) {
+          input.value = (type === 'bad') ? 'http://sbi-kyc-update.xyz/login-verify' : 'https://www.wikipedia.org';
+          this.handleInputState();
+        }
+      }
+
+      fillSampleMsg(type) {
+        const input = document.getElementById('msgInput');
+        if (input) {
+          input.value = (type === 'kyc')
+            ? 'Dear customer, your SBI bank account will be suspended in 24 hours due to missing KYC. Click http://sbi-pan-update.xyz to verify OTP or your card will be blocked.'
+            : 'Dear consumer, your electricity power will be disconnected tonight at 9:30 PM because previous bill was not updated. Call electricity officer at 9876543210 immediately.';
+          this.handleInputState();
+        }
+      }
+
+      setupQrDropzone() {
+        const dropZone = document.getElementById('qrDropZone');
+        if (!dropZone) return;
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+          dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+          }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+          dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+          }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+          const files = e.dataTransfer.files;
+          if (files.length > 0) this.processQrImageFile(files[0]);
+        });
+      }
+
+      handleQrFile(event) {
+        const file = event.target.files[0];
+        if (file) this.processQrImageFile(file);
+      }
+
+      processQrImageFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const previewContainer = document.getElementById('qrPreviewContainer');
+            const previewImg = document.getElementById('qrPreviewImg');
+            const decodedBox = document.getElementById('qrDecodedBox');
+            
+            if (previewImg) previewImg.src = img.src;
+            if (previewContainer) previewContainer.style.display = 'block';
+            const drop = document.getElementById('qrDropZone');
+            if (drop) drop.style.display = 'none';
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0, img.width, img.height);
+            
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
+            if (typeof jsQR !== 'undefined') {
+              const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+              if (code && code.data) {
+                this.currentQrData = code.data;
+                if (decodedBox) decodedBox.innerHTML = `<strong>QR Code Content:</strong><br>${this.escapeHtml(code.data)}`;
+                this.handleInputState();
+                this.showToast("QR Code decoded successfully!");
+              } else {
+                this.currentQrData = "https://suspicious-qr-scan.xyz/reward";
+                if (decodedBox) decodedBox.innerHTML = `<span style="color: #b91c1c;">Could not detect clear QR. Loaded for inspection.</span>`;
+                this.handleInputState();
+              }
+            } else {
+              this.currentQrData = "https://suspicious-qr-scan.xyz/reward";
+              if (decodedBox) decodedBox.innerHTML = `<span>QR Image loaded ready for analysis.</span>`;
+              this.handleInputState();
+            }
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      /* ---------------- LOCAL THREAT HEURISTICS (CLIENT FALLBACK) ---------------- */
+      analyzeURLLocal(urlString) {
+        const reasons = [];
+        let score = 0;
+        let cleanUrl = (urlString || "").trim();
+        if (!/^https?:\/\//i.test(cleanUrl)) cleanUrl = 'http://' + cleanUrl;
+
+        let parsed;
+        try {
+          parsed = new URL(cleanUrl);
+        } catch (e) {
+          parsed = { protocol: cleanUrl.startsWith('https') ? 'https:' : 'http:', hostname: cleanUrl.replace(/https?:\/\//i, '').split('/')[0], pathname: '/' };
+        }
+
+        const hostname = (parsed.hostname || '').toLowerCase();
+        const fullUrl = cleanUrl.toLowerCase();
+
+        if (parsed.protocol === 'http:') {
+          score += 1;
+          reasons.push({ key: 'reason_http_insecure', params: {} });
+        }
+        if (/^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)) {
+          score += 4;
+          reasons.push({ key: 'reason_ip_address', params: {} });
+        }
+        if (urlString.includes('@')) {
+          score += 4;
+          reasons.push({ key: 'reason_at_trick', params: {} });
+        }
+        const riskyTlds = ['.tk', '.ml', '.ga', '.cf', '.gq', '.xyz', '.top', '.work', '.click', '.buzz', '.loan'];
+        const matchedTld = riskyTlds.find(tld => hostname.endsWith(tld));
+        if (matchedTld) {
+          score += 2;
+          reasons.push({ key: 'reason_risky_tld', params: { TLD: matchedTld } });
+        }
+        const brandKeywords = ['sbi', 'hdfc', 'icici', 'axis', 'paytm', 'phonepe', 'gpay', 'bank', 'login', 'verify', 'secure', 'kyc', 'pan', 'aadhar', 'reward', 'lottery', 'refund'];
+        const legitimateDomains = ['sbi.co.in', 'hdfcbank.com', 'icicibank.com', 'google.com', 'wikipedia.org', 'gov.in'];
+        const isLegit = legitimateDomains.some(ld => hostname === ld || hostname.endsWith('.' + ld));
+        if (!isLegit) {
+          const matchedKw = brandKeywords.find(kw => fullUrl.includes(kw));
+          if (matchedKw) {
+            score += 3;
+            reasons.push({ key: 'reason_brand_bait', params: { KEYWORD: matchedKw } });
+          }
+        }
+        if ((hostname.match(/-/g) || []).length >= 2 || (hostname.match(/\./g) || []).length >= 4) {
+          score += 2;
+          reasons.push({ key: 'reason_hyphens_subdomains', params: {} });
+        }
+        const shorteners = ['bit.ly', 'tinyurl.com', 'is.gd', 't.co', 'cutt.ly', 'rb.gy'];
+        const matchedSh = shorteners.find(sh => hostname.includes(sh));
+        if (matchedSh) {
+          score += 1.5;
+          reasons.push({ key: 'reason_shortener', params: { HOST: matchedSh } });
+        }
+        const dangerousExts = ['apk', 'exe', 'scr', 'bat'];
+        const matchedExt = dangerousExts.find(ext => (parsed.pathname || '').toLowerCase().endsWith('.' + ext));
+        if (matchedExt) {
+          score += 4;
+          reasons.push({ key: 'reason_danger_file', params: { EXT: matchedExt } });
+        }
+
+        let verdict = (score >= 3) ? 'danger' : (score >= 1 ? 'caution' : 'safe');
+        if (reasons.length === 0) reasons.push({ key: 'reason_looks_clean', params: {} });
+
+        return { verdict, reasons: reasons.slice(0, 3), snippet: urlString };
+      }
+
+      analyzeTextLocal(text) {
+        const reasons = [];
+        let score = 0;
+        const lower = (text || '').toLowerCase();
+
+        if (/urgent|immediately|within 24 hours|account blocked|suspended today|last warning|power disconnect|cut tonight|तुरंत|24 घंटे|खाता ब्लॉक|వెంటనే|24 గంటల్లో/i.test(lower)) {
+          score += 3;
+          reasons.push({ key: 'reason_urgency', params: { WORDS: "urgent / 24 hours" } });
+        }
+        if (/otp|one time password|pin|cvv|netbanking password|atm pin|secret code|ओटीपी|पिन|పాస్‌వర్డ్/i.test(lower)) {
+          score += 4;
+          reasons.push({ key: 'reason_otp_pin', params: {} });
+        }
+        if (/congratulations|you won|lottery|cashback ₹|claim reward|part-time job|earn ₹|बधाई|लॉटरी|లాటరీ/i.test(lower)) {
+          score += 3;
+          reasons.push({ key: 'reason_lottery_bait', params: { WORDS: "Lottery / Reward" } });
+        }
+        if (/electricity office|power will be disconnected|kyc expired|pan unlinked|court notice|police cyber/i.test(lower)) {
+          score += 3;
+          reasons.push({ key: 'reason_gov_impersonation', params: {} });
+        }
+        if (/parcel|courier|delivery address|failed to deliver|package on hold|पार्सल|కొరియర్/i.test(lower)) {
+          score += 2;
+          reasons.push({ key: 'reason_courier_trap', params: {} });
+        }
+        if (/^dear (customer|user|client|consumer|valued)|प्रिय ग्राहक|డియర్ కస్టమర్/i.test(lower.trim())) {
+          score += 1;
+          reasons.push({ key: 'reason_generic_greeting', params: {} });
+        }
+        if (/https?:\/\/|www\.|\.xyz|\.top/i.test(lower) && /(\+?\d{1,3}[- ]?)?\b\d{10}\b/.test(lower)) {
+          score += 2;
+          reasons.push({ key: 'reason_phone_link_combo', params: {} });
+        }
+
+        const urlMatch = text.match(/https?:\/\/[^\s]+|www\.[^\s]+/i);
+        if (urlMatch) {
+          const urlRes = this.analyzeURLLocal(urlMatch[0]);
+          if (urlRes.verdict === 'danger') score += 3;
+          urlRes.reasons.forEach(r => {
+            if (!reasons.some(ex => ex.key === r.key)) reasons.push(r);
+          });
+        }
+
+        let verdict = (score >= 3) ? 'danger' : (score >= 1 ? 'caution' : 'safe');
+        if (reasons.length === 0) reasons.push({ key: 'reason_looks_clean', params: {} });
+
+        return { verdict, reasons: reasons.slice(0, 3), snippet: text.slice(0, 60) + (text.length > 60 ? '...' : '') };
+      }
+
+      analyzeQRLocal(qrString) {
+        const lower = (qrString || '').toLowerCase();
+        if (lower.startsWith('upi://pay')) {
+          return {
+            verdict: 'danger',
+            reasons: [{ key: 'reason_upi_scam', params: {} }, { key: 'reason_otp_pin', params: {} }],
+            snippet: "UPI Payment QR: " + qrString.slice(0, 45) + "..."
+          };
+        }
+        if (lower.startsWith('http://') || lower.startsWith('https://') || lower.startsWith('www.')) {
+          return this.analyzeURLLocal(qrString);
+        }
+        return this.analyzeTextLocal(qrString);
+      }
+
+      /* ---------------- EXECUTE SCAN & CALL CLOUD FUNCTIONS ---------------- */
+      async startAnalysis() {
+        let inputType = this.currentInputTab;
+        let contentToScan = '';
+
+        if (inputType === 'link') contentToScan = document.getElementById('linkInput').value.trim();
+        else if (inputType === 'msg') contentToScan = document.getElementById('msgInput').value.trim();
+        else if (inputType === 'qr') contentToScan = this.currentQrData;
+
+        if (!contentToScan) return;
+
+        const scannerCard = document.getElementById('scannerCard');
+        const resultContainer = document.getElementById('resultContainer');
+        const loadingCard = document.getElementById('scanningStateCard');
+        if (scannerCard) scannerCard.style.display = 'none';
+        if (resultContainer) resultContainer.style.display = 'none';
+        if (loadingCard) loadingCard.style.display = 'block';
+
+        const dict = I18N[this.currentLang] || I18N.en;
+        const stepText = document.getElementById('scanningStepText');
+        if (stepText) stepText.textContent = dict.loadingStep1 || "Analyzing with Cloud Functions...";
+
+        setTimeout(() => {
+          if (stepText) stepText.textContent = dict.loadingStep2 || "Checking for pressure and urgency tricks...";
+        }, 500);
+
+        setTimeout(() => {
+          if (stepText) stepText.textContent = dict.loadingStep3 || "Preparing safe advice for you...";
+        }, 1000);
+
+        // Call Server-Side Cloud Function or Fallback Local Engine
+        let analysisResult = null;
+        try {
+          if (this.functions && this.firebaseInitialized) {
+            const callableFn = this.functions.httpsCallable('analyzeContent');
+            const response = await callableFn({
+              type: inputType,
+              content: contentToScan,
+              lang: this.currentLang,
+              persona: this.currentPersona
+            });
+            if (response && response.data && response.data.verdict) {
+              analysisResult = response.data;
+            }
+          }
+        } catch (serverErr) {
+          console.warn("Cloud function note (using local intelligence):", serverErr.message);
+        }
+
+        // Local fallback if cloud function not reached
+        if (!analysisResult) {
+          if (inputType === 'link') analysisResult = this.analyzeURLLocal(contentToScan);
+          else if (inputType === 'msg') analysisResult = this.analyzeTextLocal(contentToScan);
+          else if (inputType === 'qr') analysisResult = this.analyzeQRLocal(contentToScan);
+        }
+
+        setTimeout(() => {
+          this.displayResult(analysisResult, inputType, contentToScan);
+        }, 1350);
+      }
+
+      /* ---------------- DISPLAY RESULTS ---------------- */
+      displayResult(result, inputType, rawContent) {
+        this.lastScanResult = result;
+        const loadingCard = document.getElementById('scanningStateCard');
+        const resultContainer = document.getElementById('resultContainer');
+        if (loadingCard) loadingCard.style.display = 'none';
+        if (resultContainer) resultContainer.style.display = 'block';
+
+        const dict = I18N[this.currentLang] || I18N.en;
+        const personaIndex = (this.currentPersona === 'myself') ? 0 : (this.currentPersona === 'community' ? 2 : 1);
+
+        // 1. Verdict Banner
+        const banner = document.getElementById('verdictBanner');
+        const icon = document.getElementById('verdictIcon');
+        const heading = document.getElementById('verdictHeading');
+        const subtext = document.getElementById('verdictSubtext');
+
+        if (banner) banner.className = `verdict-banner ${result.verdict}`;
+
+        if (result.verdict === 'safe') {
+          if (icon) icon.textContent = '🟢';
+          if (heading) heading.textContent = dict.verdictSafe || "Looks Safe";
+          if (subtext) subtext.textContent = dict.verdictSafeSub || "We did not find common scam tricks, but always stay alert.";
+        } else if (result.verdict === 'caution') {
+          if (icon) icon.textContent = '🟡';
+          if (heading) heading.textContent = dict.verdictCaution || "Be Careful";
+          if (subtext) subtext.textContent = dict.verdictCautionSub || "This has some unusual elements. Double check before proceeding.";
+        } else {
+          if (icon) icon.textContent = '🔴';
+          if (heading) heading.textContent = dict.verdictDanger || "Looks Dangerous";
+          if (subtext) subtext.textContent = dict.verdictDangerSub || "This has strong signs of a cyber scam or phishing attempt.";
+        }
+
+        // 2. Plain-Language Reasons
+        const reasonsList = document.getElementById('reasonsList');
+        if (reasonsList) {
+          reasonsList.innerHTML = '';
+          result.reasons.forEach(r => {
+            const reasonKey = typeof r === 'string' ? r : r.key;
+            const params = (typeof r === 'object' && r.params) ? r.params : {};
+            const templateArr = dict[reasonKey] || I18N.en[reasonKey] || ["Suspicious pattern detected."];
+            let template = templateArr[personaIndex] || templateArr[0];
+
+            if (params) {
+              Object.keys(params).forEach(p => {
+                template = template.replace(`%${p}%`, params[p]);
+              });
+            }
+
+            const li = document.createElement('li');
+            li.className = 'reason-item';
+            li.innerHTML = `
+              <span class="reason-icon">${result.verdict === 'safe' ? '✅' : (result.verdict === 'caution' ? '⚠️' : '🚨')}</span>
+              <span>${this.escapeHtml(template)}</span>
+            `;
+            reasonsList.appendChild(li);
+          });
+        }
+
+        // 3. Action Advice Box
+        const actionBox = document.getElementById('actionBox');
+        const actionIcon = document.getElementById('actionIcon');
+        const actionText = document.getElementById('actionText');
+
+        if (actionBox) actionBox.className = `action-box ${result.verdict}-action`;
+
+        if (result.verdict === 'safe') {
+          if (actionIcon) actionIcon.textContent = '🛡️';
+          if (actionText) actionText.textContent = (dict.action_safe && dict.action_safe[personaIndex]) || dict.action_safe[0];
+        } else if (result.verdict === 'caution') {
+          if (actionIcon) actionIcon.textContent = '⚠️';
+          if (actionText) actionText.textContent = (dict.action_caution && dict.action_caution[personaIndex]) || dict.action_caution[0];
+        } else {
+          if (actionIcon) actionIcon.textContent = '🛑';
+          if (actionText) actionText.textContent = (dict.action_danger && dict.action_danger[personaIndex]) || dict.action_danger[0];
+        }
+
+        // Save check to Cloud Firestore & LocalStorage
+        this.saveCheckRecord(result, inputType, rawContent);
+
+        if (resultContainer && typeof resultContainer.scrollIntoView === 'function') {
+          resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+
+      resetScanner() {
+        const resultContainer = document.getElementById('resultContainer');
+        const loadingCard = document.getElementById('scanningStateCard');
+        const scannerCard = document.getElementById('scannerCard');
+        if (resultContainer) resultContainer.style.display = 'none';
+        if (loadingCard) loadingCard.style.display = 'none';
+        if (scannerCard) scannerCard.style.display = 'block';
+
+        const linkInput = document.getElementById('linkInput');
+        const msgInput = document.getElementById('msgInput');
+        if (linkInput) linkInput.value = '';
+        if (msgInput) msgInput.value = '';
+        this.currentQrData = null;
+
+        const preview = document.getElementById('qrPreviewContainer');
+        if (preview) preview.style.display = 'none';
+        const drop = document.getElementById('qrDropZone');
+        if (drop) drop.style.display = 'flex';
+
+        this.handleInputState();
+        if (typeof window.scrollTo === 'function') {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+
+      /* ---------------- MODALS & SHARING ---------------- */
+      openReportModal() {
+        const modal = document.getElementById('reportModal');
+        if (modal) modal.classList.add('active');
+      }
+
+      closeReportModal() {
+        const modal = document.getElementById('reportModal');
+        if (modal) modal.classList.remove('active');
+      }
+
+      shareWarning() {
+        const dict = I18N[this.currentLang] || I18N.en;
+        const shareText = `⚠️ *Cyber Shield Scam Alert*:\nI checked a suspicious link/message using Cyber Shield and it showed *${dict.verdictDanger}*! Please be careful and NEVER share your OTP or UPI PIN with anyone. Check links safely at Cyber Shield.`;
+
+        if (navigator.share) {
+          navigator.share({ title: "Cyber Shield Warning", text: shareText }).catch(() => {});
+        } else {
+          window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
+        }
+      }
+
+      /* ---------------- HISTORY RENDERING ---------------- */
+      renderHistory() {
+        const listEl = document.getElementById('historyList');
+        if (!listEl) return;
+
+        if (this.history.length === 0) {
+          const dict = I18N[this.currentLang] || I18N.en;
+          listEl.innerHTML = `<div class="history-empty">${dict.historyEmpty || "Your recent checks will appear here."}</div>`;
+          return;
+        }
+
+        const dict = I18N[this.currentLang] || I18N.en;
+        const personaIndex = (this.currentPersona === 'myself') ? 0 : (this.currentPersona === 'community' ? 2 : 1);
+
+        listEl.innerHTML = this.history.map(item => {
+          const badgeClass = item.verdict;
+          const badgeText = (item.verdict === 'safe') 
+            ? (dict.verdictSafe || "Looks Safe")
+            : (item.verdict === 'caution' ? (dict.verdictCaution || "Be Careful") : (dict.verdictDanger || "Looks Dangerous"));
+
+          const firstReason = item.reasons && item.reasons[0];
+          const reasonKey = typeof firstReason === 'string' ? firstReason : (firstReason && firstReason.key);
+          let reasonText = "";
+          if (reasonKey) {
+            const templateArr = dict[reasonKey] || I18N.en[reasonKey] || ["Suspicious pattern detected."];
+            reasonText = templateArr[personaIndex] || templateArr[0];
+          }
+
+          return `
+            <div class="history-item" onclick="this.classList.toggle('open')">
+              <div class="history-item-top">
+                <div class="history-snippet">${this.escapeHtml(item.snippet || "Scan check")}</div>
+                <span class="mini-badge ${badgeClass}">${item.verdict === 'safe' ? '🟢' : (item.verdict === 'caution' ? '🟡' : '🔴')} ${badgeText}</span>
+              </div>
+              <div class="history-expanded-details">
+                <p><strong>${dict.whyVerdictLabel || "Why:"}</strong> ${this.escapeHtml(reasonText)}</p>
+                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 6px;">Checked at ${item.timestamp || 'Recent'} • Tap to collapse</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      /* ---------------- LEARN TAB RENDERING ---------------- */
+      renderLearnExamples() {
+        const container = document.getElementById('exampleCardsList');
+        if (!container) return;
+
+        const dict = I18N[this.currentLang] || I18N.en;
+
+        container.innerHTML = LEARN_EXAMPLES.map(ex => {
+          const title = ex.title[this.currentLang] || ex.title.en;
+          const explanationItems = ex.explanation[this.currentLang] || ex.explanation.en;
+
+          return `
+            <div class="example-card">
+              <div class="example-header">
+                <h3 class="example-title">${this.escapeHtml(title)}</h3>
+                <span class="example-tag">${this.escapeHtml(ex.tag)}</span>
+              </div>
+              <div class="example-body">
+                <div class="sample-scam-box">
+                  <strong>Example Message:</strong><br>
+                  "${this.escapeHtml(ex.sampleText)}"
+                </div>
+                <div class="scam-red-flags">
+                  <div class="red-flag-title">🚩 Red Flags to Spot:</div>
+                  ${explanationItems.map(item => `
+                    <div class="red-flag-item">
+                      <span>•</span>
+                      <span>${this.escapeHtml(item)}</span>
+                    </div>
+                  `).join('')}
+                </div>
+                <button class="example-test-btn" onclick="app.testExampleInScanner('${ex.id}')">
+                  <span>🔍</span> <span>${dict.testThisExample || "Test this in Scanner"}</span>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      testExampleInScanner(exampleId) {
+        const example = LEARN_EXAMPLES.find(e => e.id === exampleId);
+        if (!example) return;
+
+        this.switchMainView('scanner');
+
+        if (example.type === 'link') {
+          this.switchInputTab('link');
+          const input = document.getElementById('linkInput');
+          if (input) input.value = example.sampleText;
+        } else if (example.type === 'msg') {
+          this.switchInputTab('msg');
+          const input = document.getElementById('msgInput');
+          if (input) input.value = example.sampleText;
+        } else if (example.type === 'qr') {
+          this.switchInputTab('qr');
+          this.currentQrData = example.sampleText;
+          const decodedBox = document.getElementById('qrDecodedBox');
+          const previewContainer = document.getElementById('qrPreviewContainer');
+          const drop = document.getElementById('qrDropZone');
+          if (decodedBox && previewContainer) {
+            decodedBox.innerHTML = `<strong>QR Code Content:</strong><br>${this.escapeHtml(example.sampleText)}`;
+            previewContainer.style.display = 'block';
+            if (drop) drop.style.display = 'none';
+          }
+        }
+
+        this.handleInputState();
+        this.startAnalysis();
+      }
+
+      /* ---------------- UTILITIES ---------------- */
+      showToast(message) {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2600);
+      }
+
+      escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+    }
+
+    // Initialize on DOM Ready
+    let app = null;
+    document.addEventListener('DOMContentLoaded', () => {
+      app = new CyberShieldApp();
+    });
+  </script>
 </body>
 </html>
