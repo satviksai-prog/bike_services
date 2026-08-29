@@ -1,0 +1,7 @@
+url,label,url_length,domain_length,num_dots,num_hyphens,num_digits,num_special_chars,num_subdomains,has_https,has_ip,has_at_symbol,suspicious_keyword_count,shortened_url,typosquatting,domain_age_days,known_malicious
+https://www.wikipedia.org,legitimate,25,17,2,0,0,6,1,true,false,false,0,false,false,,false
+https://github.com/openai/openai-python,legitimate,36,10,1,0,0,8,0,true,false,false,0,false,false,,false
+https://example.test/login/verify,suspicious,33,12,1,0,0,7,0,true,false,false,2,false,false,,false
+http://198.51.100.7/account/login,phishing,35,12,3,0,9,9,2,false,true,false,2,false,false,,false
+https://sbi-secure.example.test/verify,phishing,38,23,3,1,0,8,2,true,false,false,1,false,true,,false
+https://example.test/reward/payment,phishing,35,12,1,0,0,7,0,true,false,false,2,false,false,,false

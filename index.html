@@ -16,12 +16,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
 
   <!-- =========================================================================
-       FIREBASE SDKs (Compat version for standalone zero-build single HTML file)
+       SUPABASE SDK (standalone zero-build single HTML file)
        ========================================================================= -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-functions-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/url-risk-config.js"></script>
+  <script src="js/url-risk-engine.js"></script>
+  <script src="js/shared-evidence-engine.js"></script>
 
   <style>
     /* ==========================================================================
@@ -51,7 +51,7 @@
       --danger-border: #fecaca;
       --danger-text: #7f1d1d;
 
-      --bg-page: #f8fafc;
+      --bg-page: #f5f9ff;
       --card-bg: #ffffff;
       --text-main: #0f172a;
       --text-muted: #475569;
@@ -81,13 +81,49 @@
     body {
       font-family: var(--font-family);
       background-color: var(--bg-page);
+      background-image:
+        radial-gradient(circle at 8% 8%, rgba(96, 165, 250, 0.28) 0, rgba(96, 165, 250, 0) 28rem),
+        radial-gradient(circle at 92% 24%, rgba(125, 211, 252, 0.24) 0, rgba(125, 211, 252, 0) 24rem),
+        radial-gradient(circle at 76% 88%, rgba(191, 219, 254, 0.36) 0, rgba(191, 219, 254, 0) 30rem),
+        linear-gradient(135deg, #f8fbff 0%, #eff6ff 48%, #f8fafc 100%);
+      background-attachment: fixed;
       color: var(--text-main);
       line-height: 1.5;
       font-size: 16px;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      isolation: isolate;
       -webkit-font-smoothing: antialiased;
+    }
+
+    /* Soft decorative shapes give the page depth without competing with content. */
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      width: 18rem;
+      height: 18rem;
+      border: 1px solid rgba(59, 130, 246, 0.12);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::before {
+      top: 11rem;
+      left: -9rem;
+      box-shadow: 0 0 0 2.4rem rgba(147, 197, 253, 0.08),
+                  0 0 0 5.5rem rgba(219, 234, 254, 0.48);
+      animation: haloDrift 12s ease-in-out infinite alternate;
+    }
+
+    body::after {
+      right: -10rem;
+      bottom: 3rem;
+      box-shadow: 0 0 0 2.5rem rgba(125, 211, 252, 0.09),
+                  0 0 0 5.7rem rgba(224, 242, 254, 0.52);
+      animation: haloDrift 15s ease-in-out infinite alternate-reverse;
     }
 
     button, input, textarea, select {
@@ -170,6 +206,7 @@
       font-size: 24px;
       box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
       flex-shrink: 0;
+      animation: shieldFloat 3.5s ease-in-out infinite;
     }
 
     .brand-text h1 {
@@ -396,6 +433,9 @@
        ========================================================================== */
     main {
       flex: 1;
+      position: relative;
+      z-index: 1;
+      padding-top: 24px;
       padding-bottom: 40px;
     }
 
@@ -406,6 +446,18 @@
       box-shadow: var(--shadow-md);
       padding: 20px;
       margin-bottom: 20px;
+      animation: cardReveal 0.55s ease-out both;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+
+    .card:nth-of-type(2) { animation-delay: 0.08s; }
+    .card:nth-of-type(3) { animation-delay: 0.16s; }
+    .card:nth-of-type(4) { animation-delay: 0.24s; }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #bfdbfe;
+      box-shadow: 0 16px 30px -14px rgba(37, 99, 235, 0.3);
     }
 
     /* 3 Main Tabs: Link, Message, QR Code */
@@ -675,6 +727,22 @@
       text-align: center;
     }
 
+    .hero-card { display:flex; align-items:center; gap:18px; padding:20px; margin-bottom:18px; overflow:hidden; background:linear-gradient(135deg,#eff6ff,#fff); }
+    .hero-copy { flex:1; }
+    .hero-copy h2 { font-size:1.35rem; line-height:1.2; margin-bottom:6px; }
+    .hero-copy p { color:var(--text-muted); font-size:.92rem; }
+    .hero-art { width:94px; height:94px; flex:0 0 94px; border-radius:28px; display:grid; place-items:center; color:#fff; font-size:46px; background:linear-gradient(145deg,#2563eb,#1e40af); box-shadow:0 12px 24px -12px #2563eb; animation:shieldFloat 3.5s ease-in-out infinite; }
+    .daily-alert { display:none; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; padding:11px 13px; border:1px solid #fde68a; border-radius:12px; background:#fffbeb; color:#78350f; font-size:.87rem; font-weight:650; }
+    .daily-alert.show { display:flex; }
+    .daily-alert button { color:#92400e; font-weight:800; font-size:18px; }
+    .scanner-tabs { grid-template-columns:repeat(3,1fr); }
+    .tab-scroll-note { font-size:.75rem;color:var(--text-muted);text-align:center;margin:-10px 0 10px; }
+    .scan-line { width:80%; height:3px; margin:16px auto; border-radius:999px; background:linear-gradient(90deg,transparent,#2563eb,transparent); animation:scanSweep 1.3s ease-in-out infinite; }
+    @keyframes scanSweep { from{transform:translateX(-28%);opacity:.25} 50%{opacity:1} to{transform:translateX(28%);opacity:.25} }
+    .bottom-nav { position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:120;width:min(650px,calc(100% - 24px));display:grid;grid-template-columns:repeat(4,1fr);padding:6px;background:rgba(255,255,255,.95);border:1px solid #dbeafe;border-radius:18px;box-shadow:0 12px 30px rgba(15,23,42,.16);backdrop-filter:blur(10px); }
+    .bottom-nav button { min-height:50px;border-radius:12px;color:var(--text-muted);font-size:.72rem;font-weight:700;display:grid;place-items:center;gap:1px; }
+    .bottom-nav button span:first-child{font-size:18px}.bottom-nav button.active{color:#1d4ed8;background:#eff6ff}.profile-stat{text-align:center;padding:22px}.profile-stat strong{display:block;font-size:2.3rem;color:#2563eb}.view-panel{display:none}.view-panel.active{display:block}.empty-illustration{font-size:46px;margin-bottom:8px}.onboard-dots{display:flex;justify-content:center;gap:7px;margin:14px}.onboard-dots i{width:8px;height:8px;border-radius:50%;background:#cbd5e1}.onboard-dots i.active{background:#2563eb;width:22px;border-radius:10px}
+
     .spinner-ring {
       display: inline-block;
       width: 58px;
@@ -712,6 +780,29 @@
       animation: slideUp 0.3s ease-out;
     }
 
+    .smart-alerts { display: grid; gap: 10px; margin: -6px 0 16px; }
+    .smart-alert {
+      display: flex; gap: 10px; align-items: flex-start; padding: 13px 14px;
+      border: 1px solid #fdba74; border-radius: var(--radius-md); background: #fff7ed;
+      color: #9a3412; font-size: 0.92rem; font-weight: 700; box-shadow: var(--shadow-sm);
+    }
+    .smart-alert-icon { font-size: 1.15rem; line-height: 1.25; }
+    .sender-field { margin-top: 14px; }
+    .sender-field .input-label { font-size: 0.9rem; }
+    .sender-field .input-hint { margin-bottom: 7px; }
+    .cursor-circle {
+      position: fixed; top: 0; left: 0; z-index: 9999; pointer-events: none;
+      width: 22px; height: 22px; border: 2px solid var(--primary); border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3); opacity: 0;
+      transform: translate(-50%, -50%); transition: opacity .18s ease, width .16s ease, height .16s ease;
+    }
+    .cursor-circle.visible { opacity: .9; }
+    .cursor-circle.clicking { animation: cursorPulse .48s ease-out; }
+    @keyframes cursorPulse {
+      0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, .45); background: rgba(37, 99, 235, .25); }
+      100% { box-shadow: 0 0 0 18px rgba(37, 99, 235, 0); background: rgba(255, 255, 255, .3); }
+    }
+
     @keyframes slideUp {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -747,6 +838,12 @@
       color: var(--danger-text);
     }
 
+    .verdict-banner.unable {
+      background-color: #f1f5f9;
+      border-color: #94a3b8;
+      color: #334155;
+    }
+
     .verdict-icon {
       font-size: 52px;
       line-height: 1;
@@ -764,6 +861,13 @@
       font-weight: 600;
       opacity: 0.9;
     }
+
+    .risk-summary { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:-8px 0 18px; padding:14px 16px; border:1px solid #cbd5e1; border-radius:14px; background:#fff; box-shadow:var(--shadow-sm); }
+    .risk-summary > div { display:grid; gap:2px; }.risk-label { font-size:.76rem; text-transform:uppercase; letter-spacing:.06em; font-weight:800; color:var(--text-muted); }.risk-summary strong { font-size:1rem; color:var(--text-main); }.risk-summary p { margin:0; color:var(--text-muted); font-size:.78rem; max-width:310px; }
+    .evidence-details { margin:0 0 18px; border:1px solid var(--border-subtle); border-radius:14px; background:#fff; overflow:hidden; }.evidence-details summary { cursor:pointer; padding:14px 16px; font-weight:800; color:#1e3a8a; }.evidence-details-body { padding:0 16px 15px; color:var(--text-muted); font-size:.88rem; line-height:1.55; }.evidence-details-body ul { margin:8px 0 0 20px; }.evidence-details-body code { color:#0f172a; overflow-wrap:anywhere; }
+    .signout-btn { display:inline-flex; align-items:center; gap:7px; border:1px solid #fecaca; background:#fff1f2; color:#b91c1c; padding:8px 11px; min-height:38px; border-radius:10px; font-weight:800; }.signout-btn:hover { background:#fee2e2; }
+    .verification-summary { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:-8px 0 18px; }.verification-summary div{padding:11px;border:1px solid var(--border-subtle);border-radius:12px;background:#fff}.verification-summary span{display:block;font-size:.72rem;text-transform:uppercase;font-weight:800;letter-spacing:.04em;color:var(--text-muted)}.verification-summary strong{display:block;margin-top:3px;font-size:.82rem;color:var(--text-main);line-height:1.35}
+    @media (max-width:480px) { .risk-summary { align-items:flex-start; flex-direction:column; gap:5px; } .verification-summary{grid-template-columns:1fr;} }
 
     /* Plain Language Reasons (Max 3) */
     .reasons-box {
@@ -831,6 +935,11 @@
     .action-box.safe-action {
       background: #f0fdf4;
       border-color: #bbf7d0;
+    }
+
+    .action-box.unable-action {
+      background: #f8fafc;
+      border-color: #cbd5e1;
     }
 
     .action-icon {
@@ -1231,27 +1340,29 @@
     .persona-choices {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 20px;
     }
 
     .persona-choice-btn {
       width: 100%;
-      min-height: 64px;
-      border: 2px solid var(--border-subtle);
+      min-height: 76px;
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius-md);
-      background: #ffffff;
-      padding: 12px 16px;
+      background: linear-gradient(135deg, #ffffff, #f8fbff);
+      padding: 14px 16px;
       text-align: left;
       display: flex;
       align-items: center;
       gap: 14px;
-      transition: var(--transition);
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
     }
 
     .persona-choice-btn:hover {
       border-color: var(--primary);
       background: var(--primary-light);
+      transform: translateX(4px);
+      box-shadow: 0 8px 18px -12px rgba(37, 99, 235, .45);
     }
 
     .persona-choice-btn.selected {
@@ -1363,14 +1474,299 @@
       opacity: 1;
     }
 
+    /* ==========================================================================
+       AUTH / LOGIN GATE MODAL
+       ========================================================================== */
+    .auth-gate {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(160deg, var(--primary-dark), var(--primary));
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 2000;
+      overflow-y: auto;
+    }
+
+    .auth-gate.active {
+      display: flex;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .auth-gate-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 440px;
+      border-radius: var(--radius-lg);
+      padding: 26px 24px;
+      box-shadow: var(--shadow-lg);
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .auth-gate-head {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .auth-gate-logo {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 10px auto;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+
+    .auth-gate-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .auth-gate-sub {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Panel toggle tabs (Sign in / Sign up) */
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #f1f5f9;
+      border-radius: var(--radius-md);
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 18px;
+    }
+
+    .auth-tab-btn {
+      min-height: 40px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+
+    .auth-tab-btn.active {
+      background: #ffffff;
+      color: var(--primary);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
+
+    .auth-panel {
+      display: none;
+    }
+
+    .auth-panel.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .auth-field {
+      margin-bottom: 14px;
+    }
+
+    .auth-field label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .auth-input {
+      width: 100%;
+      border: 2px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-size: 1rem;
+      background: #fafafa;
+      color: var(--text-main);
+      transition: var(--transition);
+    }
+
+    .auth-input:focus {
+      background: #ffffff;
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .auth-error {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #7f1d1d;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      margin-bottom: 14px;
+    }
+
+    .auth-error.show {
+      display: block;
+    }
+
+    .auth-submit-btn {
+      width: 100%;
+      min-height: 50px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 1rem;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+      margin-bottom: 12px;
+    }
+
+    .auth-submit-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    }
+
+    .auth-submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    .auth-google-btn {
+      width: 100%;
+      min-height: 50px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 0.98rem;
+      color: var(--text-main);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: var(--transition);
+    }
+
+    .auth-google-btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+
+    .auth-link {
+      display: block;
+      text-align: center;
+      font-size: 0.88rem;
+      color: var(--primary);
+      font-weight: 600;
+      padding: 6px;
+      margin-top: 6px;
+    }
+
+    .auth-link:hover {
+      text-decoration: underline;
+    }
+
+    .auth-guest-link {
+      display: block;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 12px 0 0 0;
+      margin-top: 14px;
+      border-top: 1px solid var(--border-subtle);
+      letter-spacing: 0.2px;
+    }
+
+    .auth-guest-link:hover {
+      color: var(--primary);
+    }
+
+    .auth-success {
+      display: none;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #14532d;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+
+    .auth-success.show {
+      display: block;
+    }
+
     /* Footer */
     footer {
+      position: relative;
+      z-index: 1;
       text-align: center;
       padding: 20px 16px;
       font-size: 0.84rem;
       color: var(--text-muted);
       border-top: 1px solid var(--border-subtle);
       background: #ffffff;
+    }
+
+    /* Small, calm movements make the interface feel alive without slowing it down. */
+    @keyframes shieldFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    @keyframes haloDrift {
+      from { transform: translate3d(0, 0, 0) scale(1); }
+      to { transform: translate3d(18px, -14px, 0) scale(1.07); }
+    }
+
+    @keyframes cardReveal {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
     }
 
     /* Responsive adjustments */
@@ -1408,6 +1804,15 @@
               <option value="en">English</option>
               <option value="hi">हिन्दी (Hindi)</option>
               <option value="te">తెలుగు (Telugu)</option>
+              <option value="ta">தமிழ் (Tamil)</option>
+              <option value="kn">ಕನ್ನಡ (Kannada)</option>
+              <option value="ml">മലയാളം (Malayalam)</option>
+              <option value="bn">বাংলা (Bengali)</option>
+              <option value="mr">मराठी (Marathi)</option>
+              <option value="gu">ગુજરાતી (Gujarati)</option>
+              <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+              <option value="ur">اردو (Urdu)</option>
+              <option value="or">ଓଡ଼ିଆ (Odia)</option>
             </select>
             <span class="lang-arrow" aria-hidden="true">▼</span>
           </div>
@@ -1445,10 +1850,10 @@
     <div class="container">
       <div class="persona-bar-inner">
         <div class="persona-indicator">
-          <span data-i18n="checkingFor">Checking for:</span>
+          <span data-i18n="checkingFor">Advice style:</span>
           <span class="persona-pill" id="currentPersonaPill">
             <span id="currentPersonaEmoji">👨‍👩‍👧</span>
-            <span id="currentPersonaLabel">A family member</span>
+            <span id="currentPersonaLabel">Helping someone</span>
           </span>
         </div>
         <button class="persona-change-btn" onclick="app.openPersonaModal()" data-i18n="changeMode">
@@ -1462,6 +1867,8 @@
   <main class="container">
 
     <!-- Top Navigation Toggle: Scanner vs Learn -->
+    <div class="daily-alert" id="dailyAlert"><span id="dailyAlertText"></span><button onclick="app.dismissDailyAlert()" aria-label="Dismiss">×</button></div>
+    <section class="card hero-card"><div class="hero-copy"><h2>Check before you click</h2><p>Spot scam links, messages, emails and QR codes in seconds.</p></div><div class="hero-art" aria-hidden="true">🛡️</div></section>
     <div class="nav-toggle-bar" role="tablist">
       <button class="nav-toggle-btn active" id="navScannerBtn" onclick="app.switchMainView('scanner')" role="tab" aria-selected="true">
         <span>🔍</span> <span data-i18n="navScanner">Scanner</span>
@@ -1493,7 +1900,11 @@
             <span class="tab-icon">📷</span>
             <span data-i18n="tabQr">QR Code</span>
           </button>
+          <button class="scanner-tab-btn" id="tabEmailBtn" onclick="app.switchInputTab('email')" role="tab" aria-selected="false"><span class="tab-icon">✉️</span><span>Email</span></button>
+          <button class="scanner-tab-btn" id="tabWebBtn" onclick="app.switchInputTab('web')" role="tab" aria-selected="false"><span class="tab-icon">🌐</span><span>Web Page</span></button>
+          <button class="scanner-tab-btn" id="tabSocialBtn" onclick="app.switchInputTab('social')" role="tab" aria-selected="false"><span class="tab-icon">💬</span><span>Social</span></button>
         </div>
+        <p class="tab-scroll-note">Choose what you want to check</p>
 
         <!-- Tab 1: LINK Input -->
         <div id="tabLinkContent" class="tab-pane active">
@@ -1520,6 +1931,11 @@
             <label for="msgInput" class="input-label" data-i18n="msgInputLabel">Paste SMS, WhatsApp, or email text</label>
             <div class="input-hint" data-i18n="msgInputHint">Copy the entire suspicious message and paste it here</div>
             <textarea id="msgInput" class="app-input" rows="4" placeholder="Dear customer, your bank account will be suspended in 24 hours. Send OTP immediately to verify..." oninput="app.handleInputState()"></textarea>
+          </div>
+          <div class="sender-field">
+            <label for="senderInput" class="input-label">Sender number or email <span style="font-weight:500; color:var(--text-muted)">(optional)</span></label>
+            <div class="input-hint">Paste the phone number, email address, or website domain of the sender.</div>
+            <input id="senderInput" class="app-input" type="text" maxlength="160" autocomplete="off" placeholder="e.g. 9876543210 or alert@example.com">
           </div>
           <div class="input-helpers">
             <button class="helper-btn" onclick="app.pasteClipboard('msgInput')">
@@ -1557,6 +1973,9 @@
             </div>
           </div>
         </div>
+        <div id="tabEmailContent" class="tab-pane"><div class="input-group"><label class="input-label" for="emailInput">Paste suspicious email</label><div class="input-hint">Include the sender email address, subject, and message content.</div><textarea id="emailInput" class="app-input" rows="6" placeholder="From: alert@bank-security.example&#10;Subject: Verify your account..." oninput="app.handleInputState()"></textarea></div></div>
+        <div id="tabWebContent" class="tab-pane"><div class="input-group"><label class="input-label" for="webInput">Website to inspect</label><div class="input-hint">We check the address and, when available, look for brand impersonation.</div><textarea id="webInput" class="app-input" rows="3" placeholder="https://example.com" oninput="app.handleInputState()"></textarea></div></div>
+        <div id="tabSocialContent" class="tab-pane"><div class="input-group"><label class="input-label" for="socialInput">Paste social-media message</label><div class="input-hint">WhatsApp, Instagram, Facebook, Telegram, or any DM.</div><textarea id="socialInput" class="app-input" rows="5" placeholder="Hi, is this your account? Claim your giveaway now..." oninput="app.handleInputState()"></textarea></div></div>
 
         <!-- Primary Action Button: "Check this now" -->
         <button id="scanBtn" class="main-cta-btn" onclick="app.startAnalysis()">
@@ -1571,6 +1990,7 @@
            ========================================================================= -->
       <section class="card scanning-state" id="scanningStateCard" aria-live="polite">
         <div class="spinner-ring"></div>
+        <div class="scan-line"></div>
         <h2 class="scanning-title" data-i18n="loadingTitle">Checking for safety tricks...</h2>
         <p class="scanning-step" id="scanningStepText" data-i18n="loadingStep1">Looking at website structure...</p>
       </section>
@@ -1587,9 +2007,34 @@
           <p id="verdictSubtext" class="verdict-subtext">This has strong signs of a cyber scam.</p>
         </div>
 
+        <section class="risk-summary" aria-labelledby="riskScoreTitle">
+          <div><span class="risk-label" id="riskScoreTitle">How we checked this</span><strong id="riskScoreValue">Based on warning signs found</strong></div>
+          <p id="riskScoreNote">We found and explain the warning signs below. A low-risk result is not a guarantee that something is safe.</p>
+        </section>
+        <section class="verification-summary" aria-label="Verification summary">
+          <div><span>Confidence</span><strong id="confidenceValue">Unavailable</strong></div>
+          <div><span>Verification</span><strong id="verificationValue">Checking available sources</strong></div>
+          <div><span>Data sources</span><strong id="sourcesValue">Local analysis</strong></div>
+        </section>
+
+        <div id="smartAlerts" class="smart-alerts" hidden></div>
+
+        <details class="evidence-details">
+          <summary>Detection details &amp; evidence</summary>
+          <div id="evidenceDetailsBody" class="evidence-details-body"></div>
+        </details>
+        <details class="evidence-details">
+          <summary>Why did Cyber Shield give this result?</summary>
+          <div id="scoreBreakdownBody" class="evidence-details-body"></div>
+        </details>
+        <details class="evidence-details">
+          <summary>URL feature analysis</summary>
+          <div id="featureAnalysisBody" class="evidence-details-body">Feature analysis is shown for URL scans.</div>
+        </details>
+
         <!-- Plain Language Reasons Box (Max 3) -->
         <div class="card reasons-box">
-          <h3 class="section-label" data-i18n="whyVerdictLabel">Why we say this:</h3>
+          <h3 class="section-label">Detected indicators</h3>
           <ul id="reasonsList" class="reasons-list">
             <!-- Populated dynamically via JS -->
           </ul>
@@ -1653,8 +2098,11 @@
       </div>
 
     </div>
+    <div id="historyView" class="view-panel"><section class="card"><div class="history-header"><h2 class="history-title">🕒 Your check history</h2></div><div id="historyViewList" class="history-list"></div></section></div>
+    <div id="profileView" class="view-panel"><section class="card profile-stat"><div class="empty-illustration">🛡️</div><p>Your personal safety score</p><strong id="safetyScore">0</strong><p>dangerous scam checks spotted this month</p></section></div>
 
   </main>
+  <nav class="bottom-nav" aria-label="Main navigation"><button class="active" data-view="scanner" onclick="app.switchMainView('scanner')"><span>🔍</span><span>Scan</span></button><button data-view="history" onclick="app.switchMainView('history')"><span>🕒</span><span>History</span></button><button data-view="learn" onclick="app.switchMainView('learn')"><span>💡</span><span>Learn</span></button><button data-view="profile" onclick="app.switchMainView('profile')"><span>👤</span><span>Profile</span></button></nav>
 
   <!-- =========================================================================
        4. MODALS
@@ -1665,32 +2113,32 @@
     <div class="modal-card">
       <div class="modal-header">
         <div class="modal-icon">🛡️</div>
-        <h2 id="personaModalTitle" class="modal-title" data-i18n="personaTitle">Who are you checking this for?</h2>
-        <p class="modal-subtitle" data-i18n="personaSubtitle">We will adapt explanations to be simple, kind, and easy to understand.</p>
+        <h2 id="personaModalTitle" class="modal-title" data-i18n="personaTitle">Choose your advice style</h2>
+        <p class="modal-subtitle" data-i18n="personaSubtitle">Pick the kind of safety advice you want. You can change it anytime.</p>
       </div>
 
       <div class="persona-choices">
         <button class="persona-choice-btn" onclick="app.selectPersona('myself')">
           <span class="choice-emoji">🙋‍♂️</span>
           <div>
-            <div class="choice-title" data-i18n="personaMyselfTitle">Myself</div>
-            <div class="choice-desc" data-i18n="personaMyselfDesc">Direct and clear safety advice for your own daily use.</div>
+            <div class="choice-title" data-i18n="personaMyselfTitle">Personal advice</div>
+            <div class="choice-desc" data-i18n="personaMyselfDesc">Clear steps for you to follow.</div>
           </div>
         </button>
 
         <button class="persona-choice-btn" onclick="app.selectPersona('family')">
           <span class="choice-emoji">👨‍👩‍👧</span>
           <div>
-            <div class="choice-title" data-i18n="personaFamilyTitle">A family member (Elderly / Parents)</div>
-            <div class="choice-desc" data-i18n="personaFamilyDesc">Extra-gentle, plain-language advice you can read out or forward to parents.</div>
+            <div class="choice-title" data-i18n="personaFamilyTitle">Help someone you care about</div>
+            <div class="choice-desc" data-i18n="personaFamilyDesc">Extra-simple advice to read or forward to family.</div>
           </div>
         </button>
 
         <button class="persona-choice-btn" onclick="app.selectPersona('community')">
           <span class="choice-emoji">🤝</span>
           <div>
-            <div class="choice-title" data-i18n="personaCommunityTitle">My community / Friends</div>
-            <div class="choice-desc" data-i18n="personaCommunityDesc">Helpful explanations ready to share with neighbors and groups.</div>
+            <div class="choice-title" data-i18n="personaCommunityTitle">Share a warning</div>
+            <div class="choice-desc" data-i18n="personaCommunityDesc">Short, shareable advice for friends or a group.</div>
           </div>
         </button>
       </div>
@@ -1749,6 +2197,99 @@
       </div>
     </div>
   </div>
+  <div id="logoutModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle">
+    <div class="modal-card"><div class="modal-header"><div class="modal-icon">↪</div><h2 id="logoutModalTitle" class="modal-title">Sign out?</h2><p class="modal-subtitle">You will need to sign in again to access your cloud-synced history.</p></div><div class="modal-actions"><button class="btn-secondary" onclick="app.closeLogoutModal()">Cancel</button><button class="btn-danger-outline" onclick="app.confirmSignOut()">↪ Yes, sign out</button></div></div>
+  </div>
+
+  <!-- =========================================================================
+       AUTH GATE (Login / Sign-Up Modal shown before app is available)
+       ========================================================================= -->
+  <div id="authGate" class="auth-gate" role="dialog" aria-modal="true" aria-labelledby="authGateTitle">
+    <div class="auth-gate-card">
+      <div class="auth-gate-head">
+        <div class="auth-gate-logo" aria-hidden="true">🛡️</div>
+        <h2 id="authGateTitle" class="auth-gate-title" data-i18n="authTitle">Welcome to Cyber Shield</h2>
+        <p class="auth-gate-sub" data-i18n="authSubtitle">Sign in or continue as a guest to start safely checking links &amp; messages.</p>
+      </div>
+
+      <!-- Sign in / Sign up tabs -->
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab-btn active" id="authTabLogin" onclick="app.switchAuthPanel('login')" data-i18n="authLoginTab">Sign In</button>
+        <button class="auth-tab-btn" id="authTabSignup" onclick="app.switchAuthPanel('signup')" data-i18n="authSignupTab">Create Account</button>
+      </div>
+
+      <!-- LOGIN PANEL -->
+      <div id="authLoginPanel" class="auth-panel active">
+        <div id="authLoginError" class="auth-error"></div>
+        <form id="authLoginForm" onsubmit="app.handleUsernameLogin(event)">
+          <div class="auth-field">
+            <label for="authLoginUsername">Username or email address</label>
+            <input type="text" id="authLoginUsername" class="auth-input" autocomplete="username" required>
+          </div>
+          <div class="auth-field">
+            <label for="authLoginPassword" data-i18n="authPasswordLabel">Password</label>
+            <input type="password" id="authLoginPassword" class="auth-input" autocomplete="current-password" required>
+          </div>
+          <button type="submit" id="authLoginBtn" class="auth-submit-btn" data-i18n="authLoginBtnText">Sign In</button>
+        </form>
+        <button class="auth-link" id="authForgotLink" onclick="app.switchAuthPanel('forgot')" data-i18n="authForgot">Forgot password?</button>
+      </div>
+
+      <!-- SIGNUP PANEL -->
+      <div id="authSignupPanel" class="auth-panel">
+        <div id="authSignupError" class="auth-error"></div>
+        <form id="authSignupForm" onsubmit="app.handleEmailSignup(event)">
+          <div class="auth-field">
+            <label for="authSignupUsername" data-i18n="authUsernameLabel">Username</label>
+            <input type="text" id="authSignupUsername" class="auth-input" autocomplete="username" required>
+          </div>
+          <div class="auth-field">
+            <label for="authSignupEmail">Email address</label>
+            <input type="email" id="authSignupEmail" class="auth-input" autocomplete="email" inputmode="email" required>
+          </div>
+          <div class="auth-field">
+            <label for="authSignupPassword" data-i18n="authPasswordLabel">Password</label>
+            <input type="password" id="authSignupPassword" class="auth-input" autocomplete="new-password" minlength="6" required>
+          </div>
+          <div class="auth-field">
+            <label for="authSignupConfirm" data-i18n="authConfirmLabel">Confirm password</label>
+            <input type="password" id="authSignupConfirm" class="auth-input" autocomplete="new-password" minlength="6" required>
+          </div>
+          <button type="submit" id="authSignupBtn" class="auth-submit-btn" data-i18n="authSignupBtnText">Create Account</button>
+        </form>
+      </div>
+
+      <!-- FORGOT PASSWORD PANEL -->
+      <div id="authForgotPanel" class="auth-panel">
+        <div id="authForgotSuccess" class="auth-success"></div>
+        <div id="authForgotError" class="auth-error"></div>
+        <form id="authForgotForm" onsubmit="app.handlePasswordReset(event)">
+          <div class="auth-field">
+            <label for="authForgotUsername" data-i18n="authForgotUsernameLabel">Enter your username</label>
+            <input type="text" id="authForgotUsername" class="auth-input" autocomplete="username" required>
+          </div>
+          <button type="submit" id="authForgotBtn" class="auth-submit-btn" data-i18n="authForgotBtnText">Send Reset Link</button>
+        </form>
+        <button class="auth-link" onclick="app.switchAuthPanel('login')" data-i18n="authBackToLogin">← Back to sign in</button>
+      </div>
+
+      <!-- Divider + Google (hidden until Google OAuth is configured in Supabase) -->
+      <div id="authGoogleSection" style="display:none;">
+        <div class="auth-divider" data-i18n="authDivider">or continue with</div>
+        <button class="auth-google-btn" id="authGoogleBtn" onclick="app.signInWithGoogle()">
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span data-i18n="authGoogleBtn">Continue with Google</span>
+        </button>
+      </div>
+
+      <button class="auth-guest-link" id="authGuestBtn" onclick="app.continueAsGuest()" data-i18n="authGuestBtn">Continue without an account (guest)</button>
+    </div>
+  </div>
 
   <!-- Toast Notification -->
   <div id="toast" class="toast-msg" role="status" aria-live="polite"></div>
@@ -1756,28 +2297,24 @@
   <!-- Footer -->
   <footer>
     <div class="container">
-      <p data-i18n="footerText">Cyber Shield — Keeping families and communities safe from cyber scams. All checks run locally or securely via Cloud Functions.</p>
+      <p data-i18n="footerText">Cyber Shield — Keeping families and communities safe from cyber scams. All checks run on your device, with optional secure cloud sync to protect more people.</p>
     </div>
   </footer>
 
   <!-- =========================================================================
-       5. EMBEDDED JAVASCRIPT & FIREBASE INTEGRATION
+       5. EMBEDDED JAVASCRIPT & SUPABASE INTEGRATION
        ========================================================================= -->
   <script>
     /* ==========================================================================
-       FIREBASE CONFIGURATION
+       SUPABASE CONFIGURATION
        --------------------------------------------------------------------------
-       Replace the placeholder values below with your Firebase Project config
-       found in Firebase Console -> Project Settings -> General -> Your apps -> Web
+       Replace the placeholder values below with your Supabase Project config
+       found in Supabase Dashboard -> Project Settings -> API.
+       - SUPABASE_URL:    Project URL (e.g. https://xyzcompany.supabase.co)
+       - SUPABASE_ANON:   anon / public key
        ========================================================================== */
-    const firebaseConfig = {
-      apiKey: "AIzaSyPlaceholderKey-ReplaceWithYourOwn", // <-- PASTE YOUR apiKey HERE
-      authDomain: "bike-service-592b0.firebaseapp.com",    // <-- PASTE YOUR authDomain HERE
-      projectId: "bike-service-592b0",                     // <-- PASTE YOUR projectId HERE
-      storageBucket: "bike-service-592b0.appspot.com",     // <-- PASTE YOUR storageBucket HERE
-      messagingSenderId: "775699763611",                   // <-- PASTE YOUR messagingSenderId HERE
-      appId: "1:775699763611:web:placeholderAppId"        // <-- PASTE YOUR appId HERE
-    };
+    const SUPABASE_URL = "https://isvqzuwogkasqhbbugmb.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_T1WWcuXs_Z89aMU_GTAduw_Qw80Mq5C";
 
     /* ==========================================================================
        TRANSLATION DICTIONARY (English, Hindi, Telugu)
@@ -1806,7 +2343,7 @@
         qrUploadAnother: "Pick different image",
         btnCheckNow: "Check this now",
         loadingTitle: "Checking for safety tricks...",
-        loadingStep1: "Analyzing with secure Cloud engine...",
+        loadingStep1: "Analyzing safely...",
         loadingStep2: "Checking for pressure and urgency tricks...",
         loadingStep3: "Preparing safe advice for you...",
         whyVerdictLabel: "Why we say this:",
@@ -1820,14 +2357,14 @@
         learnIntroTitle: "Learn How to Spot Real Scams",
         learnIntroText: "Scammers use the same tricks again and again. Tap on these common examples to see how to protect yourself and your family.",
         testThisExample: "Test this in Scanner",
-        personaTitle: "Who are you checking this for?",
-        personaSubtitle: "We will adapt explanations to be simple, kind, and easy to understand.",
-        personaMyselfTitle: "Myself",
-        personaMyselfDesc: "Direct and clear safety advice for your own daily use.",
-        personaFamilyTitle: "A family member (Elderly / Parents)",
-        personaFamilyDesc: "Extra-gentle, plain-language advice you can read out or forward to parents.",
-        personaCommunityTitle: "My community / Friends",
-        personaCommunityDesc: "Helpful explanations ready to share with neighbors and groups.",
+        personaTitle: "Choose your advice style",
+        personaSubtitle: "Pick the kind of safety advice you want. You can change it anytime.",
+        personaMyselfTitle: "Personal advice",
+        personaMyselfDesc: "Clear steps for you to follow.",
+        personaFamilyTitle: "Help someone you care about",
+        personaFamilyDesc: "Extra-simple advice to read or forward to family.",
+        personaCommunityTitle: "Share a warning",
+        personaCommunityDesc: "Short, shareable advice for friends or a group.",
         btnSkip: "Skip for now",
         reportTitle: "How to Report Cyber Scams",
         reportSubtitle: "Official and free national helplines for reporting fraud.",
@@ -1840,7 +2377,7 @@
         helplineBankDesc: "Call the official customer care number printed on the back of your debit card to freeze cards.",
         btnSubmitCloudReport: "Submit this scam to community database",
         btnClose: "Close",
-        footerText: "Cyber Shield — Keeping families and communities safe from cyber scams. All checks run locally or securely via Cloud Functions.",
+        footerText: "Cyber Shield — Keeping families and communities safe from cyber scams. All checks run on your device, with optional secure cloud sync to protect more people.",
 
         // Auth
         authGuest: "Guest Mode (Instant)",
@@ -1848,18 +2385,42 @@
         authSignedIn: "Cloud Sync Active",
         authSignOut: "Sign out",
 
+        // Auth Gate / Login
+        authTitle: "Welcome to Cyber Shield",
+        authSubtitle: "Sign in or continue as a guest to start safely checking links & messages.",
+        authLoginTab: "Sign In",
+        authSignupTab: "Create Account",
+        authUsernameLabel: "Username",
+        authPasswordLabel: "Password",
+        authConfirmLabel: "Confirm password",
+        authLoginBtnText: "Sign In",
+        authSignupBtnText: "Create Account",
+        authForgot: "Forgot password?",
+        authForgotUsernameLabel: "Enter your username",
+        authForgotBtnText: "Send Reset Link",
+        authBackToLogin: "← Back to sign in",
+        authDivider: "or continue with",
+        authGoogleBtn: "Continue with Google",
+        authGuestBtn: "Continue without an account (guest)",
+        authForgotSent: "Password reset link sent! Please check your email.",
+        authLoggedIn: "Signed in successfully!",
+        authGuestEntered: "Using guest mode. You can sign in anytime to save your history.",
+        authAccountCreated: "Account created! Please verify your email to continue.",
+        authRequired: "Something went wrong. Please try again.",
+
+
         // Verdicts
-        verdictSafe: "Looks Safe",
-        verdictCaution: "Be Careful",
-        verdictDanger: "Looks Dangerous",
+        verdictSafe: "Low Risk",
+        verdictCaution: "Suspicious",
+        verdictDanger: "High Risk",
         verdictSafeSub: "We did not find common scam tricks, but always stay alert.",
         verdictCautionSub: "This has some unusual elements. Double check before proceeding.",
         verdictDangerSub: "This has strong signs of a cyber scam or phishing attempt.",
 
         // Persona Labels
-        persona_myself: "Myself",
-        persona_family: "A family member",
-        persona_community: "My community",
+        persona_myself: "Personal advice",
+        persona_family: "Helping someone",
+        persona_community: "Sharing a warning",
 
         // Plain Reason Templates [myself, family, community]
         reason_http_insecure: [
@@ -2023,13 +2584,36 @@
         helplineBankDesc: "कार्ड ब्लॉक कराने के लिए अपने ATM कार्ड के पीछे छपे नंबर पर कॉल करें।",
         btnSubmitCloudReport: "इस स्कैम को डेटाबेस में दर्ज करें",
         btnClose: "बंद करें",
-        footerText: "साइबर शील्ड — परिवारों को ऑनलाइन धोखाधड़ी से सुरक्षित रखने का सरल माध्यम। सभी जांचें आपके फ़ोन या क्लाउड द्वारा सुरक्षित रूप से होती हैं।",
+        footerText: "साइबर शील्ड — परिवारों को ऑनलाइन धोखाधड़ी से सुरक्षित रखने का सरल माध्यम। सभी जांचें आपके डिवाइस पर होती हैं, क्लाउड सिंक से और अधिक लोगों की सुरक्षा संभव है।",
 
         // Auth
         authGuest: "अतिथि मोड (अस्थायी)",
         authSaveGoogle: "Google से सुरक्षित करें",
         authSignedIn: "क्लाउड सिंक चालू",
         authSignOut: "साइन आउट",
+
+        // Auth Gate / Login
+        authTitle: "साइबर शील्ड में आपका स्वागत है",
+        authSubtitle: "लिंक और मैसेज सुरक्षित रूप से जांचने के लिए साइन इन करें या अतिथि के रूप में जारी रखें।",
+        authLoginTab: "साइन इन",
+        authSignupTab: "खाता बनाएं",
+        authUsernameLabel: "उपयोगकर्ता नाम",
+        authPasswordLabel: "पासवर्ड",
+        authConfirmLabel: "पासवर्ड दोबारा दर्ज करें",
+        authLoginBtnText: "साइन इन",
+        authSignupBtnText: "खाता बनाएं",
+        authForgot: "पासवर्ड भूल गए?",
+        authForgotUsernameLabel: "अपना उपयोगकर्ता नाम दर्ज करें",
+        authForgotBtnText: "रीसेट लिंक भेजें",
+        authBackToLogin: "← साइन इन पर वापस जाएं",
+        authDivider: "या इससे जारी रखें",
+        authGoogleBtn: "Google से जारी रखें",
+        authGuestBtn: "बिना खाते के जारी रखें (अतिथि)",
+        authForgotSent: "पासवर्ड रीसेट लिंक भेज दिया गया! कृपया अपना ईमेल जांचें।",
+        authLoggedIn: "सफलतापूर्वक साइन इन किया!",
+        authGuestEntered: "अतिथि मोड चालू है। अपना इतिहास सहेजने के लिए कभी भी साइन इन करें।",
+        authAccountCreated: "खाता बन गया! जारी रखने के लिए अपना ईमेल सत्यापित करें।",
+        authRequired: "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
 
         // Verdicts
         verdictSafe: "सुरक्षित लग रहा है",
@@ -2206,13 +2790,36 @@
         helplineBankDesc: "కార్డులను బ్లాక్ చేయడానికి మీ ATM కార్డు వెనుక ఉన్న నంబర్‌కు కాల్ చేయండి.",
         btnSubmitCloudReport: "ఈ మోసాన్ని సమాజ డేటాబేస్‌కు పంపండి",
         btnClose: "మూసివేయి",
-        footerText: "సైబర్ షీల్డ్ — కుటుంబాలను సైబర్ మోసాల నుండి కాపాడే సరళమైన సాధనం. అన్ని తనిఖీలు మీ ఫోన్‌లో లేదా క్లౌడ్ ద్వారా సురక్షితంగా జరుగుతాయి.",
+        footerText: "సైబర్ షీల్డ్ — కుటుంబాలను సైబర్ మోసాల నుండి కాపాడే సరళమైన సాధనం. అన్ని తనిఖీలు మీ పరికరంలో జరుగుతాయి, క్లౌడ్ సింక్ వల్ల మరింత మందిని రక్షించవచ్చు.",
 
         // Auth
         authGuest: "అతిథి మోడ్ (తాత్కాలికం)",
         authSaveGoogle: "Google తో భద్రపరచండి",
         authSignedIn: "క్లౌడ్ సమకాలీకరణ ఆన్‌లో ఉంది",
         authSignOut: "సైన్ అవుట్",
+
+        // Auth Gate / Login
+        authTitle: "సైబర్ షీల్డ్‌కు స్వాగతం",
+        authSubtitle: "లింక్‌లు & మెసేజ్‌లను సురక్షితంగా తనిఖీ చేయడానికి సైన్ ఇన్ చేయండి లేదా అతిథిగా కొనసాగండి.",
+        authLoginTab: "సైన్ ఇన్",
+        authSignupTab: "ఖాతా సృష్టించండి",
+        authUsernameLabel: "వినియోగదారు పేరు",
+        authPasswordLabel: "పాస్‌వర్డ్",
+        authConfirmLabel: "పాస్‌వర్డ్ నిర్ధారించండి",
+        authLoginBtnText: "సైన్ ఇన్",
+        authSignupBtnText: "ఖాతా సృష్టించండి",
+        authForgot: "పాస్‌వర్డ్ మర్చిపోయారా?",
+        authForgotUsernameLabel: "మీ వినియోగదారు పేరును నమోదు చేయండి",
+        authForgotBtnText: "రీసెట్ లింక్ పంపండి",
+        authBackToLogin: "← సైన్ ఇన్‌కు తిరిగి వెళ్ళండి",
+        authDivider: "లేదా దీనితో కొనసాగండి",
+        authGoogleBtn: "Google తో కొనసాగండి",
+        authGuestBtn: "ఖాతా లేకుండా కొనసాగండి (అతిథి)",
+        authForgotSent: "పాస్‌వర్డ్ రీసెట్ లింక్ పంపబడింది! దయచేసి మీ ఇమెయిల్ తనిఖీ చేయండి.",
+        authLoggedIn: "విజయవంతంగా సైన్ ఇన్ అయ్యారు!",
+        authGuestEntered: "అతిథి మోడ్‌లో ఉన్నారు. మీ చరిత్రను సేవ్ చేయడానికి ఎప్పుడైనా సైన్ ఇన్ చేయవచ్చు.",
+        authAccountCreated: "ఖాతా సృష్టించబడింది! కొనసాగడానికి దయచేసి మీ ఇమెయిల్‌ను ధృవీకరించండి.",
+        authRequired: "ఏదో పొరపాటు జరిగింది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
 
         // Verdicts
         verdictSafe: "సురక్షితంగా కనిపిస్తోంది",
@@ -2479,8 +3086,29 @@
       }
     ];
 
+    // Additional UI locales. Every key falls back to English so incomplete/unknown
+    // translations never break the interface; core scan controls are localized here.
+    const EXTRA_UI_LOCALES = {
+      ta:{appName:'சைபர் ஷீல்டு',btnCheckNow:'இப்போது சரிபார்க்கவும்',verdictSafe:'குறைந்த அபாயம்',verdictCaution:'சந்தேகமானது',verdictDanger:'அதிக அபாயம்',whatToDoLabel:'நீங்கள் செய்ய வேண்டியது:',authSignOut:'வெளியேறு'},
+      kn:{appName:'ಸೈಬರ್ ಶೀಲ್ಡ್',btnCheckNow:'ಈಗ ಪರಿಶೀಲಿಸಿ',verdictSafe:'ಕಡಿಮೆ ಅಪಾಯ',verdictCaution:'ಅನುಮಾನಾಸ್ಪದ',verdictDanger:'ಹೆಚ್ಚಿನ ಅಪಾಯ',whatToDoLabel:'ನೀವು ಮಾಡಬೇಕಾದುದು:',authSignOut:'ಸೈನ್ ಔಟ್'},
+      ml:{appName:'സൈബർ ഷീൽഡ്',btnCheckNow:'ഇപ്പോൾ പരിശോധിക്കുക',verdictSafe:'കുറഞ്ഞ അപകടസാധ്യത',verdictCaution:'സംശയാസ്പദം',verdictDanger:'ഉയർന്ന അപകടസാധ്യത',whatToDoLabel:'നിങ്ങൾ ചെയ്യേണ്ടത്:',authSignOut:'സൈൻ ഔട്ട്'},
+      bn:{appName:'সাইবার শিল্ড',btnCheckNow:'এখন পরীক্ষা করুন',verdictSafe:'কম ঝুঁকি',verdictCaution:'সন্দেহজনক',verdictDanger:'উচ্চ ঝুঁকি',whatToDoLabel:'আপনার করণীয়:',authSignOut:'সাইন আউট'},
+      mr:{appName:'सायबर शिल्ड',btnCheckNow:'आता तपासा',verdictSafe:'कमी धोका',verdictCaution:'संशयास्पद',verdictDanger:'जास्त धोका',whatToDoLabel:'तुम्ही काय करावे:',authSignOut:'साइन आउट'},
+      gu:{appName:'સાયબર શીલ્ડ',btnCheckNow:'હવે તપાસો',verdictSafe:'ઓછું જોખમ',verdictCaution:'શંકાસ્પદ',verdictDanger:'વધુ જોખમ',whatToDoLabel:'તમારે શું કરવું:',authSignOut:'સાઇન આઉટ'},
+      pa:{appName:'ਸਾਈਬਰ ਸ਼ੀਲਡ',btnCheckNow:'ਹੁਣ ਜਾਂਚੋ',verdictSafe:'ਘੱਟ ਖਤਰਾ',verdictCaution:'ਸ਼ੱਕੀ',verdictDanger:'ਵੱਧ ਖਤਰਾ',whatToDoLabel:'ਤੁਹਾਨੂੰ ਕੀ ਕਰਨਾ ਚਾਹੀਦਾ ਹੈ:',authSignOut:'ਸਾਈਨ ਆਉਟ'},
+      ur:{appName:'سائبر شیلڈ',btnCheckNow:'اب چیک کریں',verdictSafe:'کم خطرہ',verdictCaution:'مشکوک',verdictDanger:'زیادہ خطرہ',whatToDoLabel:'آپ کو کیا کرنا چاہیے:',authSignOut:'سائن آؤٹ'},
+      or:{appName:'ସାଇବର ଶିଲ୍ଡ',btnCheckNow:'ବର୍ତ୍ତମାନ ଯାଞ୍ଚ କରନ୍ତୁ',verdictSafe:'କମ୍ ବିପଦ',verdictCaution:'ସନ୍ଦେହଜନକ',verdictDanger:'ଉଚ୍ଚ ବିପଦ',whatToDoLabel:'ଆପଣ କଣ କରିବେ:',authSignOut:'ସାଇନ୍ ଆଉଟ୍'}
+    };
+    Object.entries(EXTRA_UI_LOCALES).forEach(([code, strings]) => { I18N[code] = { ...I18N.en, ...strings }; });
+
+    LEARN_EXAMPLES.push(
+      { id:'email_phish', type:'email', tag:'Email Scam', title:{en:'Fake bank email asking to verify',hi:'फर्जी बैंक ईमेल',te:'నకిలీ బ్యాంక్ ఇమెయిల్'}, sampleText:'From: verify@sbi-security-alert.xyz\nYour account will close today. Verify your OTP now.', explanation:{en:['✉️ Sender domain does not match the real bank.','🚨 Urgent account-closure threats are a common trick.','🛡️ Open your bank app directly instead of email links.'],hi:['✉️ भेजने वाला बैंक का असली डोमेन नहीं है।','🚨 तुरंत खाते की धमकी एक आम स्कैम ट्रिक है।','🛡️ ईमेल लिंक की बजाय बैंक ऐप खोलें।'],te:['✉️ పంపిన డొమైన్ అసలు బ్యాంక్‌ది కాదు।','🚨 అత్యవసర బెదిరింపు సాధారణ మోసపు పద్ధతి।','🛡️ ఇమెయిల్ లింక్ కాకుండా బ్యాంక్ యాప్ తెరవండి।']}},
+      { id:'social_giveaway', type:'social', tag:'Social DM Scam', title:{en:'Instagram giveaway verification DM',hi:'इंस्टाग्राम गिवअवे DM',te:'ఇన్‌స్టాగ్రామ్ గివ్‌అవే DM'}, sampleText:'Hi, is this your account? You won our giveaway. Verify now to claim.', explanation:{en:['💬 Unknown DMs often imitate verified pages.','🎁 A prize requiring verification is a warning sign.','🛡️ Do not share codes, passwords, or payment details.'],hi:['💬 अनजान DM अक्सर असली पेज की नकल करते हैं।','🎁 वेरिफिकेशन मांगने वाला इनाम चेतावनी है।','🛡️ कोड, पासवर्ड या भुगतान विवरण साझा न करें।'],te:['💬 తెలియని DMలు అసలు పేజీలను అనుకరిస్తాయి।','🎁 ధృవీకరణ అడిగే బహుమతి హెచ్చరిక।','🛡️ కోడ్‌లు లేదా పాస్‌వర్డ్‌లు పంచవద్దు।']}},
+      { id:'fake_support', type:'link', tag:'Fake Support Site', title:{en:'Fake customer support website',hi:'फर्जी कस्टमर सपोर्ट साइट',te:'నకిలీ సపోర్ట్ సైట్'}, sampleText:'https://amazon-help-refund-security.xyz', explanation:{en:['🌐 The address contains a brand name but is not the official domain.','☎️ Fake support pages try to capture details or make you call.','🛡️ Use the official app or type the brand website yourself.'],hi:['🌐 लिंक में ब्रांड नाम है पर असली डोमेन नहीं।','☎️ फर्जी सपोर्ट पेज जानकारी या कॉल मांगते हैं।','🛡️ आधिकारिक ऐप या वेबसाइट स्वयं खोलें।'],te:['🌐 లింక్‌లో బ్రాండ్ పేరు ఉన్నా అసలు డొమైన్ కాదు।','☎️ నకిలీ సపోర్ట్ పేజీలు వివరాలు అడుగుతాయి।','🛡️ అధికారిక యాప్ తెరవండి।']}}
+    );
+
     /* ==========================================================================
-       APPLICATION & FIREBASE BACKEND CONTROLLER
+       APPLICATION & SUPABASE BACKEND CONTROLLER
        ========================================================================== */
     class CyberShieldApp {
       constructor() {
@@ -2492,10 +3120,11 @@
         this.currentUser = null;
         this.history = [];
         this.lastScanResult = null;
-        this.firebaseInitialized = false;
-        this.db = null;
-        this.functions = null;
-        this.auth = null;
+        this.lastScanSender = '';
+        this.supabase = null;
+        this.supabaseInitialized = false;
+        this.authChannel = null;
+        this.realtimeChannel = null;
 
         this.init();
       }
@@ -2526,55 +3155,362 @@
         this.renderLearnExamples();
         this.setupQrDropzone();
         this.handleInputState();
+        this.showOnboarding();
 
-        // 3. Initialize Firebase Backend
-        this.initFirebase();
+        // 3. Initialize Supabase Backend
+        this.initSupabase();
+        setTimeout(() => this.loadDailyAlert(), 1200);
       }
 
-      /* ---------------- FIREBASE INITIALIZATION & AUTH ---------------- */
-      initFirebase() {
+      /* ---------------- SUPABASE INITIALIZATION & AUTH ---------------- */
+      initSupabase() {
         try {
-          if (typeof firebase !== 'undefined' && firebaseConfig && !firebaseConfig.apiKey.includes('Placeholder')) {
-            if (!firebase.apps.length) {
-              firebase.initializeApp(firebaseConfig);
-            }
-            this.auth = firebase.auth();
-            this.db = firebase.firestore();
-            this.functions = firebase.functions();
-            this.firebaseInitialized = true;
+          if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('PASTE_YOUR') && SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('PASTE_YOUR')) {
+            this.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+              auth: { persistSession: true, autoRefreshToken: true }
+            });
+            this.supabaseInitialized = true;
 
-            // Auth state observer
-            this.auth.onAuthStateChanged(user => {
-              this.handleAuthStateChanged(user);
+            // Auth state observer (fires INITIAL_SESSION on load, then SIGNED_IN/OUT etc.)
+            this.supabase.auth.onAuthStateChange((event, session) => {
+              const user = session ? session.user : null;
+              this.handleAuthStateChanged(user, event);
             });
           } else {
-            console.log("ℹ️ Running in Local Mode with offline storage until Firebase API key is configured.");
+            console.log("ℹ️ Running in Local Mode with offline storage until Supabase URL / anon key is configured.");
             this.updateAuthUI(null);
+            this.unlockApp();
           }
         } catch (err) {
-          console.warn("Firebase initialization skipped or running offline:", err);
-          this.firebaseInitialized = false;
+          console.warn("Supabase initialization skipped or running offline:", err);
+          this.supabaseInitialized = false;
           this.updateAuthUI(null);
+          this.unlockApp();
         }
       }
 
-      async handleAuthStateChanged(user) {
+      async handleAuthStateChanged(user, event) {
         this.currentUser = user;
-        if (!user) {
-          // Automatic Anonymous Sign-In on first visit so history works immediately
-          try {
-            const cred = await this.auth.signInAnonymously();
-            this.currentUser = cred.user;
-          } catch (e) {
-            console.warn("Anonymous auth note:", e.message);
+
+        // Update the auth bar UI
+        this.updateAuthUI(user);
+
+        // Real-time Supabase history synchronization
+        if (user && this.supabase) {
+          this.subscribeToHistory(user.id);
+        } else {
+          // Clear realtime channel when signed out
+          if (this.realtimeChannel) {
+            this.supabase.removeChannel(this.realtimeChannel);
+            this.realtimeChannel = null;
           }
+          this.loadLocalHistory();
         }
 
-        this.updateAuthUI(this.currentUser);
+        // Gate the app: show login modal unless a valid user session exists
+        if (user) {
+          this.unlockApp();
+        } else {
+          this.lockApp();
+        }
+      }
 
-        // Real-time Firestore History Synchronization
-        if (this.currentUser && this.db) {
-          this.subscribeToFirestoreHistory(this.currentUser.uid);
+      /* ---------------- AUTH GATE (LOGIN) ---------------- */
+      lockApp() {
+        const gate = document.getElementById('authGate');
+        if (gate) gate.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        this.switchAuthPanel('login');
+      }
+
+      unlockApp() {
+        const gate = document.getElementById('authGate');
+        if (gate) gate.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      closeLoginModal() {
+        this.unlockApp();
+      }
+
+      continueAsGuest() {
+        if (!this.supabase) {
+          this.lockApp();
+          return;
+        }
+        const dict = I18N[this.currentLang] || I18N.en;
+        this.supabase.auth.signInAnonymously()
+          .then(() => {
+            this.showToast(dict.authGuestEntered || "Using guest mode.");
+          })
+          .catch((err) => {
+            console.warn("Anonymous sign-in error:", err);
+            this.showToast(err.message || "Could not enter guest mode.");
+          });
+      }
+
+      switchAuthPanel(panel) {
+        const tabs = {
+          login: 'authTabLogin',
+          signup: 'authTabSignup'
+        };
+        Object.keys(tabs).forEach(key => {
+          const tabBtn = document.getElementById(tabs[key]);
+          if (tabBtn) tabBtn.classList.toggle('active', key === panel);
+        });
+
+        ['authLoginPanel', 'authSignupPanel', 'authForgotPanel'].forEach(id => {
+          const p = document.getElementById(id);
+          if (p) p.classList.toggle('active', id === ('auth' + panel.charAt(0).toUpperCase() + panel.slice(1) + 'Panel'));
+        });
+
+        this.clearAuthErrors();
+      }
+
+      clearAuthErrors() {
+        ['authLoginError', 'authSignupError', 'authForgotError', 'authForgotSuccess'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.textContent = '';
+            el.classList.remove('show');
+          }
+        });
+      }
+
+      showAuthError(id, message) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.textContent = message;
+          el.classList.add('show');
+        }
+      }
+
+      showAuthSuccess(id, message) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.textContent = message;
+          el.classList.add('show');
+        }
+      }
+
+      friendlyAuthError(codeOrMessage) {
+        const msg = String(codeOrMessage || '');
+        const map = [
+          [/invalid login credentials|invalid_credentials/i, 'Invalid username or password.'],
+          [/user already registered|email_exists|already been registered/i, 'An account already exists with this email address.'],
+          [/user not found|user_not_found/i, 'No account found.'],
+          [/weak password|weak_password/i, 'Password must be at least 6 characters.'],
+          [/invalid email|invalid_email/i, 'Please enter a valid email address.'],
+          [/over_email_send_rate_limit|email.*rate limit|email.*limit.*reached/i, 'The email sending limit has been reached. Please wait up to one hour before trying again.'],
+          [/over_request_rate_limit|too many requests|rate limit/i, 'Too many attempts. Please wait a few minutes before trying again.'],
+          [/network|fetch failed|ERR_NETWORK/i, 'Network error. Check your connection.'],
+          [/password should be|password_length/i, 'Password must be at least 6 characters.'],
+          [/email provider is disabled/i, 'Email sign-up is not enabled yet. Please enable Email in Supabase Authentication settings.'],
+          [/signup is disabled/i, 'New account creation is currently disabled. Please enable sign-ups in Supabase Authentication settings.']
+        ];
+        for (const [regex, text] of map) {
+          if (regex.test(msg)) return text;
+        }
+        return 'Please try again.';
+      }
+
+      async handleUsernameLogin(event) {
+        event.preventDefault();
+        this.clearAuthErrors();
+
+        const username = document.getElementById('authLoginUsername').value.trim();
+        const password = document.getElementById('authLoginPassword').value;
+        const btn = document.getElementById('authLoginBtn');
+
+        if (!username || !password) {
+          this.showAuthError('authLoginError', 'Please enter your username and password.');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Signing in…';
+
+        try {
+          // Real email sign-in works even if the optional username profile has not yet been saved.
+          if (username.includes('@')) {
+            const { error } = await this.supabase.auth.signInWithPassword({
+              email: username.toLowerCase(),
+              password
+            });
+            if (error) this.showAuthError('authLoginError', this.friendlyAuthError(error.message));
+            return;
+          }
+
+          const { data: profile, error: profileError } = await this.supabase
+            .from('profiles')
+            .select('email')
+            .eq('username', username)
+            .maybeSingle();
+
+          if (profileError) {
+            this.showAuthError('authLoginError', this.friendlyAuthError(profileError.message));
+            return;
+          }
+
+          if (!profile) {
+            this.showAuthError('authLoginError', 'No account found with this username.');
+            return;
+          }
+
+          const { error } = await this.supabase.auth.signInWithPassword({ email: profile.email, password });
+          if (error) {
+            this.showAuthError('authLoginError', this.friendlyAuthError(error.message));
+          }
+        } catch (err) {
+          this.showAuthError('authLoginError', this.friendlyAuthError(err.message));
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Sign In';
+        }
+      }
+
+      async handleEmailSignup(event) {
+        event.preventDefault();
+        this.clearAuthErrors();
+
+        const username = document.getElementById('authSignupUsername').value.trim();
+        const email = document.getElementById('authSignupEmail').value.trim().toLowerCase();
+        const password = document.getElementById('authSignupPassword').value;
+        const confirm = document.getElementById('authSignupConfirm').value;
+        const btn = document.getElementById('authSignupBtn');
+
+        if (password !== confirm) {
+          this.showAuthError('authSignupError', 'Passwords do not match.');
+          return;
+        }
+
+        if (!username) {
+          this.showAuthError('authSignupError', 'Please choose a username.');
+          return;
+        }
+
+        if (!email) {
+          this.showAuthError('authSignupError', 'Please enter your email address.');
+          return;
+        }
+
+        if (!/^[a-zA-Z0-9._-]{3,30}$/.test(username)) {
+          this.showAuthError('authSignupError', 'Username must be 3-30 characters using letters, numbers, dots, dashes or underscores.');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Creating account…';
+
+        try {
+          const { data, error } = await this.supabase.auth.signUp({
+            email,
+            password,
+            options: { data: { username } }
+          });
+          if (error) {
+            this.showAuthError('authSignupError', this.friendlyAuthError(`${error.code || ''} ${error.message || ''}`));
+          } else {
+            // Save the username -> real email mapping so the user can log in either way.
+            if (data.user) {
+              const { error: profileError } = await this.supabase
+                .from('profiles')
+                .upsert({ id: data.user.id, username, email });
+              if (profileError) {
+                console.warn('Could not save profile mapping:', profileError);
+              }
+            }
+            const dict = I18N[this.currentLang] || I18N.en;
+            this.showToast(dict.authAccountCreated || "Account created! You can now sign in.");
+            if (data.session) {
+              // Email confirmation is off OR auto-confirm: session available immediately
+              this.closeLoginModal();
+              this.updateAuthUI(this.currentUser);
+            } else {
+              // Email confirmation required: stay on the login gate until the user verifies
+              this.switchAuthPanel('login');
+            }
+          }
+        } catch (err) {
+          this.showAuthError('authSignupError', this.friendlyAuthError(err.message));
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Create Account';
+        }
+      }
+
+      async handlePasswordReset(event) {
+        event.preventDefault();
+        this.clearAuthErrors();
+
+        const username = document.getElementById('authForgotUsername').value.trim();
+        const btn = document.getElementById('authForgotBtn');
+
+        if (!username) {
+          this.showAuthError('authForgotError', 'Please enter your username.');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Sending…';
+
+        try {
+          const { data: profile, error: profileError } = await this.supabase
+            .from('profiles')
+            .select('email')
+            .eq('username', username)
+            .maybeSingle();
+
+          if (profileError) {
+            this.showAuthError('authForgotError', this.friendlyAuthError(profileError.message));
+            return;
+          }
+
+          if (!profile) {
+            this.showAuthError('authForgotError', 'No account found with this username.');
+            return;
+          }
+
+          const redirectTo = window.location.origin + window.location.pathname;
+          const { error } = await this.supabase.auth.resetPasswordForEmail(profile.email, { redirectTo });
+          if (error) {
+            this.showAuthError('authForgotError', this.friendlyAuthError(error.message));
+          } else {
+            const dict = I18N[this.currentLang] || I18N.en;
+            this.showAuthSuccess('authForgotSuccess', dict.authForgotSent || "Password reset link sent! Please check your email.");
+          }
+        } catch (err) {
+          this.showAuthError('authForgotError', this.friendlyAuthError(err.message));
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Send Reset Link';
+        }
+      }
+
+      async signInWithGoogle() {
+        if (!this.supabase) {
+          this.showToast("Please configure your Supabase URL / anon key in index.html to enable Google Sign-in.");
+          return;
+        }
+
+        const dict = I18N[this.currentLang] || I18N.en;
+
+        try {
+          const redirectTo = window.location.origin + window.location.pathname;
+          const { error } = await this.supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo }
+          });
+          if (error) {
+            this.showToast("Sign in note: " + this.friendlyAuthError(error.message));
+          }
+          // For OAuth with redirect, the app reloads and onAuthStateChange picks up the session.
+          // For popup flow, session resolves on redirect here.
+          this.showToast(dict.authLoggedIn || "Signed in successfully!");
+          this.closeLoginModal();
+        } catch (error) {
+          console.error("Google sign in error:", error);
+          this.showToast("Sign in note: " + (error.message || "Could not complete sign in"));
         }
       }
 
@@ -2584,148 +3520,163 @@
         const actionsContainer = document.getElementById('authActionsContainer');
         const authDot = document.getElementById('authDot');
 
-        if (!user || user.isAnonymous) {
+        const isAnonymous = !!(user && (user.is_anonymous || (user.app_metadata && user.app_metadata.provider === 'anonymous')));
+
+        if (!user || isAnonymous) {
           if (statusText) statusText.textContent = dict.authGuest || "Guest Mode (Instant)";
           if (authDot) authDot.style.background = "#16a34a";
           if (actionsContainer) {
+            const showLogout = !!user && isAnonymous;
             actionsContainer.innerHTML = `
-              <button class="google-upgrade-btn" onclick="app.signInWithGoogle()">
-                <svg width="14" height="14" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-                <span>${dict.authSaveGoogle || "Save with Google"}</span>
-              </button>
+              <span style="color:#64748b;font-size:0.8rem;">${dict.authGuestNote || "History is saved on this device"}</span>
+              ${showLogout ? `<button class="signout-btn" onclick="app.openLogoutModal()" aria-label="Sign out of Cyber Shield">↪ ${dict.authSignOut || "Sign out"}</button>` : ''}
             `;
           }
         } else {
-          // User is signed in with Google
-          const displayName = user.displayName || user.email.split('@')[0] || "User";
-          const photoURL = user.photoURL || "https://api.dicebear.com/7.x/bottts/svg?seed=" + user.uid;
+          // User is signed in with a real account
+          const meta = user.user_metadata || {};
+          const displayName = user.display_name || meta.username || meta.full_name || meta.name || (user.email ? user.email.split('@')[0] : "User");
+          const photoURL = user.identities && user.identities[0] && (user.identities[0].identity_data && user.identities[0].identity_data.avatar_url) || "";
 
           if (statusText) statusText.textContent = dict.authSignedIn || "Cloud Sync Active";
           if (authDot) authDot.style.background = "#2563eb";
           if (actionsContainer) {
             actionsContainer.innerHTML = `
               <div class="user-pill">
-                <img src="${photoURL}" class="user-avatar" alt="Avatar">
+                ${photoURL ? `<img src="${this.escapeHtml(photoURL)}" class="user-avatar" alt="Avatar">` : `<span style="font-size:0.9rem;">👤</span>`}
                 <span>${this.escapeHtml(displayName)}</span>
               </div>
-              <button class="signout-btn" onclick="app.signOut()">${dict.authSignOut || "Sign out"}</button>
+              <button class="signout-btn" onclick="app.openLogoutModal()" aria-label="Sign out of Cyber Shield">↪ ${dict.authSignOut || "Sign out"}</button>
             `;
           }
         }
       }
 
-      async signInWithGoogle() {
-        if (!this.auth) {
-          this.showToast("Please configure your Firebase API Key in index.html to enable Google Sign-in.");
-          return;
-        }
-
-        const provider = new firebase.auth.GoogleAuthProvider();
-
-        try {
-          if (this.currentUser && this.currentUser.isAnonymous) {
-            // Upgrade existing anonymous user to Google Account
-            await this.currentUser.linkWithPopup(provider);
-            this.showToast("Account linked! Your history is now saved permanently.");
-          } else {
-            await this.auth.signInWithPopup(provider);
-            this.showToast("Signed in with Google!");
-          }
-        } catch (error) {
-          if (error.code === 'auth/credential-already-in-use') {
-            // Account exists, sign in directly
-            await this.auth.signInWithPopup(provider);
-            this.showToast("Signed into existing Google account!");
-          } else {
-            console.error("Google sign in error:", error);
-            this.showToast("Sign in note: " + (error.message || "Could not complete sign in"));
-          }
-        }
-      }
+      openLogoutModal() { const modal = document.getElementById('logoutModal'); if (modal) modal.classList.add('active'); }
+      closeLogoutModal() { const modal = document.getElementById('logoutModal'); if (modal) modal.classList.remove('active'); }
+      async confirmSignOut() { this.closeLogoutModal(); await this.signOut(); }
 
       async signOut() {
-        if (this.auth) {
-          await this.auth.signOut();
-          // Automatically re-create anonymous session for continuous check history
-          await this.auth.signInAnonymously();
-          this.showToast("Signed out. Switched back to guest mode.");
+        if (this.supabase) {
+          await this.supabase.auth.signOut();
+          this.showToast("Signed out.");
+          // Lock the app behind the login gate
+          this.lockApp();
         }
       }
 
-      /* ---------------- FIRESTORE DATABASE SYNCHRONIZATION ---------------- */
-      subscribeToFirestoreHistory(uid) {
-        if (!this.db) return;
+      /* ---------------- SUPABASE DATABASE SYNCHRONIZATION ---------------- */
+      subscribeToHistory(userId) {
+        if (!this.supabase) return;
 
-        this.db.collection('users').doc(uid).collection('checks')
-          .orderBy('createdAt', 'desc')
+        // Load history on subscribe
+        this.supabase
+          .from('checks')
+          .select('id, input_snippet, verdict, reasons, checked_for, created_at')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
           .limit(20)
-          .onSnapshot((snapshot) => {
-            if (snapshot.empty) {
-              this.renderHistory();
+          .then(({ data, error }) => {
+            if (error) {
+              console.warn("Supabase history fallback:", error);
+              this.loadLocalHistory();
               return;
             }
-            this.history = snapshot.docs.map(doc => {
-              const data = doc.data();
-              return {
-                id: doc.id,
-                verdict: data.verdict,
-                snippet: data.inputSnippet,
-                reasons: data.reasons || [],
-                checkedFor: data.checkedFor,
-                timestamp: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'
-              };
-            });
+            this.history = (data || []).map(row => ({
+              id: row.id,
+              verdict: row.verdict,
+              snippet: row.input_snippet,
+              reasons: row.reasons || [],
+              checkedFor: row.checked_for,
+              timestamp: row.created_at
+                ? new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : 'Just now'
+            }));
             this.renderHistory();
-          }, (err) => {
-            console.warn("Firestore sync fallback:", err);
-            this.loadLocalHistory();
+          });
+
+        // Subscribe to realtime inserts for this user's checks
+        if (this.realtimeChannel) {
+          this.supabase.removeChannel(this.realtimeChannel);
+        }
+        this.realtimeChannel = this.supabase
+          .channel('history-changes-' + userId)
+          .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'checks',
+            filter: 'user_id=eq.' + userId
+          }, () => {
+            this.refreshHistory(userId);
+          })
+          .on('postgres_changes', {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'checks',
+            filter: 'user_id=eq.' + userId
+          }, () => {
+            this.refreshHistory(userId);
+          })
+          .subscribe();
+      }
+
+      refreshHistory(userId) {
+        if (!this.supabase) return;
+        this.supabase
+          .from('checks')
+          .select('id, input_snippet, verdict, reasons, checked_for, created_at')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(20)
+          .then(({ data, error }) => {
+            if (error) return;
+            this.history = (data || []).map(row => ({
+              id: row.id,
+              verdict: row.verdict,
+              snippet: row.input_snippet,
+              reasons: row.reasons || [],
+              checkedFor: row.checked_for,
+              timestamp: row.created_at
+                ? new Date(row.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : 'Just now'
+            }));
+            this.renderHistory();
           });
       }
 
       async saveCheckRecord(result, inputType, rawContent) {
         const item = {
-          inputSnippet: result.snippet,
+          // Keep history useful without retaining private message/email/QR contents.
+          input_snippet: this.redactForStorage(rawContent, inputType),
           verdict: result.verdict,
           reasons: result.reasons.map(r => r.key),
           language: this.currentLang,
-          checkedFor: this.currentPersona,
-          rawType: inputType
+          checked_for: this.currentPersona,
+          raw_type: inputType
         };
 
-        // 1. Try Saving to Cloud Firestore
-        if (this.db && this.currentUser) {
+        // 1. Try Saving to Supabase
+        if (this.supabase && this.currentUser && this.supabaseInitialized) {
           try {
-            await this.db.collection('users').doc(this.currentUser.uid).collection('checks').add({
+            await this.supabase.from('checks').insert({
               ...item,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              user_id: this.currentUser.id
             });
+            return;
           } catch (e) {
             console.warn("Cloud save fallback to localStorage:", e);
-            this.saveLocalHistoryItem({
-              id: Date.now(),
-              type: inputType,
-              verdict: result.verdict,
-              snippet: result.snippet,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              reasons: result.reasons
-            });
           }
-        } else {
-          // 2. Fallback to LocalStorage
-          this.saveLocalHistoryItem({
-            id: Date.now(),
-            type: inputType,
-            verdict: result.verdict,
-            snippet: result.snippet,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            reasons: result.reasons
-          });
         }
+
+        // 2. Fallback to LocalStorage
+        this.saveLocalHistoryItem({
+          id: Date.now(),
+          type: inputType,
+          verdict: result.verdict,
+          snippet: this.redactForStorage(rawContent, inputType),
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          reasons: result.reasons
+        });
       }
 
       async submitCloudReport() {
@@ -2734,14 +3685,37 @@
           return;
         }
 
-        if (this.functions && this.firebaseInitialized) {
+        if (this.supabase && this.currentUser && this.supabaseInitialized) {
           try {
-            const submitFn = this.functions.httpsCallable('submitReport');
-            await submitFn({
-              text: this.lastScanResult.snippet,
-              verdict: this.lastScanResult.verdict,
-              language: this.currentLang
-            });
+            // Do not upload the private scanned text. Reports use a cryptographic
+            // fingerprint and a privacy-safe description instead.
+            const snippet = this.lastScanResult.snippet;
+            const fingerprint = await this.privacyFingerprint(snippet);
+            const reportText = this.redactForStorage(snippet, this.lastScanInputType);
+            const { data: existing } = await this.supabase
+              .from('reports')
+              .select('id, confirm_count')
+              .eq('hashed', fingerprint)
+              .maybeSingle();
+
+            if (existing) {
+              await this.supabase
+                .from('reports')
+                .update({ confirm_count: existing.confirm_count + 1, last_reported_at: new Date().toISOString() })
+                .eq('id', existing.id);
+            } else {
+              await this.supabase.from('reports').insert({
+                hashed: fingerprint,
+                text: reportText.slice(0, 500),
+                verdict: this.lastScanResult.verdict,
+                confirm_count: 1,
+                reported_by: this.currentUser.id
+              });
+            }
+            if (this.lastScanSender) {
+              // The Edge Function uses a server-side transaction; clients never write report counts.
+              await this.supabase.functions.invoke('report-sender', { body: { senderValue: this.lastScanSender } });
+            }
             this.showToast(this.currentLang === 'hi' ? "स्कैम रिपोर्ट क्लाउड में दर्ज की गई!" : "Scam reported to community database!");
             this.closeReportModal();
           } catch (e) {
@@ -2753,6 +3727,52 @@
           this.showToast("Report logged locally. Thank you for protecting the community!");
           this.closeReportModal();
         }
+      }
+
+      hashString(str) {
+        let hash = 0;
+        const s = String(str || '');
+        for (let i = 0; i < s.length; i++) {
+          hash = ((hash << 5) - hash) + s.charCodeAt(i);
+          hash |= 0;
+        }
+        return 'h' + Math.abs(hash).toString(36);
+      }
+
+      async privacyFingerprint(value) {
+        const text = String(value || '');
+        if (window.crypto && crypto.subtle && window.TextEncoder) {
+          const bytes = new TextEncoder().encode(text);
+          const digest = await crypto.subtle.digest('SHA-256', bytes);
+          return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+        }
+        // Older browsers keep a local fallback; no raw message is stored either way.
+        return this.hashString(text);
+      }
+
+      redactForStorage(value, inputType) {
+        const raw = String(value || '').trim();
+        if (['link', 'web'].includes(inputType)) {
+          try { return `URL scan: ${new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`).hostname}`; }
+          catch (_) { return 'URL scan: invalid address'; }
+        }
+        return `${inputType || 'content'} scan — private content not stored`;
+      }
+
+      normalizeSender(value) {
+        return String(value || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\s+/g, '');
+      }
+
+      async getSmartSignals(url, senderValue) {
+        const alerts = [];
+        if (!this.supabase || !this.currentUser) return alerts;
+        const tasks = [];
+        if (url) tasks.push(this.supabase.functions.invoke('analyze-content', { body: { url } })
+          .then(({ data, error }) => { if (!error && data && Array.isArray(data.alerts)) alerts.push(...data.alerts); }));
+        if (senderValue) tasks.push(this.supabase.from('sender_reports').select('report_count').eq('sender_value', senderValue).maybeSingle()
+          .then(({ data, error }) => { if (!error && data && data.report_count > 0) alerts.push({ type: 'sender', count: data.report_count, message: `This sender has been reported by ${data.report_count} other user${data.report_count === 1 ? '' : 's'}.` }); }));
+        await Promise.allSettled(tasks);
+        return alerts;
       }
 
       /* ---------------- LOCAL STORAGE HISTORY ---------------- */
@@ -2795,15 +3815,14 @@
         this.history = [];
         localStorage.removeItem('cybershield_history');
 
-        if (this.db && this.currentUser) {
+        if (this.supabase && this.currentUser && this.supabaseInitialized) {
           try {
-            const checksRef = this.db.collection('users').doc(this.currentUser.uid).collection('checks');
-            const snap = await checksRef.get();
-            const batch = this.db.batch();
-            snap.docs.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
+            await this.supabase
+              .from('checks')
+              .delete()
+              .eq('user_id', this.currentUser.id);
           } catch (e) {
-            console.warn("Clear firestore checks note:", e);
+            console.warn("Clear checks note:", e);
           }
         }
 
@@ -2891,19 +3910,24 @@
         this.currentMainView = viewName;
         const scannerView = document.getElementById('scannerView');
         const learnView = document.getElementById('learnView');
+        const historyView = document.getElementById('historyView');
+        const profileView = document.getElementById('profileView');
         const navScannerBtn = document.getElementById('navScannerBtn');
         const navLearnBtn = document.getElementById('navLearnBtn');
 
+        if (scannerView) scannerView.style.display = viewName === 'scanner' ? 'block' : 'none';
+        if (learnView) learnView.classList.toggle('active', viewName === 'learn');
+        if (historyView) historyView.classList.toggle('active', viewName === 'history');
+        if (profileView) profileView.classList.toggle('active', viewName === 'profile');
+        document.querySelectorAll('.bottom-nav button').forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewName));
         if (viewName === 'scanner') {
-          if (scannerView) scannerView.style.display = 'block';
-          if (learnView) learnView.classList.remove('active');
           if (navScannerBtn) navScannerBtn.classList.add('active');
           if (navLearnBtn) navLearnBtn.classList.remove('active');
         } else {
-          if (scannerView) scannerView.style.display = 'none';
-          if (learnView) learnView.classList.add('active');
           if (navScannerBtn) navScannerBtn.classList.remove('active');
-          if (navLearnBtn) navLearnBtn.classList.add('active');
+          if (navLearnBtn) navLearnBtn.classList.toggle('active', viewName === 'learn');
+          if (viewName === 'history') this.renderHistory();
+          if (viewName === 'profile') this.updateSafetyScore();
           if (typeof window.scrollTo === 'function') {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }
@@ -2912,7 +3936,7 @@
 
       switchInputTab(tabName) {
         this.currentInputTab = tabName;
-        ['link', 'msg', 'qr'].forEach(t => {
+        ['link', 'msg', 'qr', 'email', 'web', 'social'].forEach(t => {
           const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
           const pane = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Content`);
           if (t === tabName) {
@@ -2937,6 +3961,9 @@
           hasContent = (document.getElementById('msgInput').value.trim().length > 0);
         } else if (this.currentInputTab === 'qr') {
           hasContent = (this.currentQrData !== null);
+        } else {
+          const input = document.getElementById(`${this.currentInputTab}Input`);
+          hasContent = !!(input && input.value.trim().length > 0);
         }
 
         if (scanBtn) scanBtn.disabled = !hasContent;
@@ -3029,17 +4056,18 @@
               const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
               if (code && code.data) {
                 this.currentQrData = code.data;
-                if (decodedBox) decodedBox.innerHTML = `<strong>QR Code Content:</strong><br>${this.escapeHtml(code.data)}`;
+                this.currentQrContentType = this.identifyQrContent(code.data);
+                if (decodedBox) decodedBox.innerHTML = `<strong>QR Code Content (${this.escapeHtml(this.currentQrContentType)}):</strong><br>${this.escapeHtml(code.data)}`;
                 this.handleInputState();
                 this.showToast("QR Code decoded successfully!");
               } else {
-                this.currentQrData = "https://suspicious-qr-scan.xyz/reward";
-                if (decodedBox) decodedBox.innerHTML = `<span style="color: #b91c1c;">Could not detect clear QR. Loaded for inspection.</span>`;
+                this.currentQrData = null;
+                if (decodedBox) decodedBox.innerHTML = `<span style="color: #92400e;">QR code could not be reliably decoded. Please try a sharper image.</span>`;
                 this.handleInputState();
               }
             } else {
-              this.currentQrData = "https://suspicious-qr-scan.xyz/reward";
-              if (decodedBox) decodedBox.innerHTML = `<span>QR Image loaded ready for analysis.</span>`;
+              this.currentQrData = null;
+              if (decodedBox) decodedBox.innerHTML = `<span>QR reading is unavailable in this browser. Please try another image.</span>`;
               this.handleInputState();
             }
           };
@@ -3050,10 +4078,14 @@
 
       /* ---------------- LOCAL THREAT HEURISTICS (CLIENT FALLBACK) ---------------- */
       analyzeURLLocal(urlString) {
+        // Use the configurable multi-feature engine when it is available.
+        if (window.URLRiskEngine) return window.URLRiskEngine.analyze(urlString);
         const reasons = [];
         let score = 0;
         let cleanUrl = (urlString || "").trim();
-        if (!/^https?:\/\//i.test(cleanUrl)) cleanUrl = 'http://' + cleanUrl;
+        // Browsers normally use HTTPS for a typed domain. Do not mark a link as
+        // insecure merely because the user omitted the protocol.
+        if (!/^https?:\/\//i.test(cleanUrl)) cleanUrl = 'https://' + cleanUrl;
 
         let parsed;
         try {
@@ -3084,7 +4116,12 @@
           reasons.push({ key: 'reason_risky_tld', params: { TLD: matchedTld } });
         }
         const brandKeywords = ['sbi', 'hdfc', 'icici', 'axis', 'paytm', 'phonepe', 'gpay', 'bank', 'login', 'verify', 'secure', 'kyc', 'pan', 'aadhar', 'reward', 'lottery', 'refund'];
-        const legitimateDomains = ['sbi.co.in', 'hdfcbank.com', 'icicibank.com', 'google.com', 'wikipedia.org', 'gov.in'];
+        const legitimateDomains = [
+          'sbi.co.in', 'onlinesbi.sbi', 'hdfcbank.com', 'icicibank.com', 'axisbank.com', 'kotak.bank.in',
+          'google.com', 'wikipedia.org', 'gov.in', 'github.com', 'gitlab.com', 'bitbucket.org',
+          'stackoverflow.com', 'developer.mozilla.org', 'npmjs.com', 'pypi.org', 'microsoft.com',
+          'docs.python.org', 'openai.com', 'supabase.com', 'netlify.app', 'vercel.app'
+        ];
         const isLegit = legitimateDomains.some(ld => hostname === ld || hostname.endsWith('.' + ld));
         if (!isLegit) {
           const matchedKw = brandKeywords.find(kw => fullUrl.includes(kw));
@@ -3093,7 +4130,7 @@
             reasons.push({ key: 'reason_brand_bait', params: { KEYWORD: matchedKw } });
           }
         }
-        if ((hostname.match(/-/g) || []).length >= 2 || (hostname.match(/\./g) || []).length >= 4) {
+        if (!isLegit && ((hostname.match(/-/g) || []).length >= 2 || (hostname.match(/\./g) || []).length >= 4)) {
           score += 2;
           reasons.push({ key: 'reason_hyphens_subdomains', params: {} });
         }
@@ -3150,14 +4187,8 @@
           reasons.push({ key: 'reason_phone_link_combo', params: {} });
         }
 
-        const urlMatch = text.match(/https?:\/\/[^\s]+|www\.[^\s]+/i);
-        if (urlMatch) {
-          const urlRes = this.analyzeURLLocal(urlMatch[0]);
-          if (urlRes.verdict === 'danger') score += 3;
-          urlRes.reasons.forEach(r => {
-            if (!reasons.some(ex => ex.key === r.key)) reasons.push(r);
-          });
-        }
+        // Links inside messages are analysed by SharedEvidenceEngine with the same
+        // URL engine used for direct URL, QR, social, and email scans.
 
         let verdict = (score >= 3) ? 'danger' : (score >= 1 ? 'caution' : 'safe');
         if (reasons.length === 0) reasons.push({ key: 'reason_looks_clean', params: {} });
@@ -3169,15 +4200,25 @@
         const lower = (qrString || '').toLowerCase();
         if (lower.startsWith('upi://pay')) {
           return {
-            verdict: 'danger',
-            reasons: [{ key: 'reason_upi_scam', params: {} }, { key: 'reason_otp_pin', params: {} }],
-            snippet: "UPI Payment QR: " + qrString.slice(0, 45) + "..."
+            verdict: 'unable', reasons: [], features: { qr_content_type: 'UPI payment information' },
+            snippet: 'QR content: UPI payment information'
           };
         }
         if (lower.startsWith('http://') || lower.startsWith('https://') || lower.startsWith('www.')) {
           return this.analyzeURLLocal(qrString);
         }
-        return this.analyzeTextLocal(qrString);
+        if (lower.startsWith('mailto:')) return { ...this.analyzeTextLocal(qrString.slice(7)), features: { qr_content_type: 'Email address' } };
+        if (lower.startsWith('tel:') || /^(\+?\d[\d\s-]{7,})$/.test(qrString || '')) return { verdict: 'unable', reasons: [], features: { qr_content_type: 'Phone number' }, snippet: 'QR content: phone number' };
+        return { ...this.analyzeTextLocal(qrString), features: { qr_content_type: 'Plain text' } };
+      }
+
+      identifyQrContent(qrString) {
+        const value = String(qrString || '').trim();
+        if (/^https?:\/\//i.test(value) || /^www\./i.test(value)) return 'Website link';
+        if (/^upi:\/\/pay/i.test(value)) return 'UPI payment information';
+        if (/^mailto:/i.test(value)) return 'Email address';
+        if (/^tel:/i.test(value) || /^(\+?\d[\d\s-]{7,})$/.test(value)) return 'Phone number';
+        return 'Plain text';
       }
 
       /* ---------------- EXECUTE SCAN & CALL CLOUD FUNCTIONS ---------------- */
@@ -3188,8 +4229,15 @@
         if (inputType === 'link') contentToScan = document.getElementById('linkInput').value.trim();
         else if (inputType === 'msg') contentToScan = document.getElementById('msgInput').value.trim();
         else if (inputType === 'qr') contentToScan = this.currentQrData;
+        else { const input = document.getElementById(`${inputType}Input`); contentToScan = input ? input.value.trim() : ''; }
 
-        if (!contentToScan) return;
+        const senderInput = document.getElementById('senderInput');
+        const senderValue = inputType === 'msg' ? this.normalizeSender(senderInput && senderInput.value) : (inputType === 'email' ? this.normalizeSender((contentToScan.match(/from\s*:\s*([^\s>]+@[^\s>]+)/i) || [])[1]) : '');
+
+        if (!contentToScan) {
+          this.showToast('Please enter or upload something to analyze.');
+          return;
+        }
 
         const scannerCard = document.getElementById('scannerCard');
         const resultContainer = document.getElementById('resultContainer');
@@ -3200,7 +4248,7 @@
 
         const dict = I18N[this.currentLang] || I18N.en;
         const stepText = document.getElementById('scanningStepText');
-        if (stepText) stepText.textContent = dict.loadingStep1 || "Analyzing with Cloud Functions...";
+        if (stepText) stepText.textContent = dict.loadingStep1 || "Analyzing securely...";
 
         setTimeout(() => {
           if (stepText) stepText.textContent = dict.loadingStep2 || "Checking for pressure and urgency tricks...";
@@ -3210,31 +4258,35 @@
           if (stepText) stepText.textContent = dict.loadingStep3 || "Preparing safe advice for you...";
         }, 1000);
 
-        // Call Server-Side Cloud Function or Fallback Local Engine
-        let analysisResult = null;
-        try {
-          if (this.functions && this.firebaseInitialized) {
-            const callableFn = this.functions.httpsCallable('analyzeContent');
-            const response = await callableFn({
-              type: inputType,
-              content: contentToScan,
-              lang: this.currentLang,
-              persona: this.currentPersona
-            });
-            if (response && response.data && response.data.verdict) {
-              analysisResult = response.data;
-            }
-          }
-        } catch (serverErr) {
-          console.warn("Cloud function note (using local intelligence):", serverErr.message);
+        // Analyze using the built-in client-side threat engine
+        let analysisResult;
+        if (inputType === 'link' || inputType === 'web') analysisResult = this.analyzeURLLocal(contentToScan);
+        else if (inputType === 'msg' || inputType === 'email' || inputType === 'social') analysisResult = this.analyzeTextLocal(contentToScan);
+        else if (inputType === 'qr') analysisResult = this.analyzeQRLocal(contentToScan);
+
+        if (inputType === 'social' && /hi[,!]?\s*is this your account|giveaway|verify.*account|you have won/i.test(contentToScan)) {
+          // This is a local social-engineering clue, not proof that an account is fake.
+          analysisResult.reasons.unshift({ key: 'social_opening', points: 10, text: 'The social message uses a common account-verification or giveaway opener.', source: 'local' });
         }
 
-        // Local fallback if cloud function not reached
-        if (!analysisResult) {
-          if (inputType === 'link') analysisResult = this.analyzeURLLocal(contentToScan);
-          else if (inputType === 'msg') analysisResult = this.analyzeTextLocal(contentToScan);
-          else if (inputType === 'qr') analysisResult = this.analyzeQRLocal(contentToScan);
+        const scanUrl = (inputType === 'link' || inputType === 'web') ? contentToScan : '';
+        const smartAlerts = await this.getSmartSignals(scanUrl, senderValue);
+        if (smartAlerts.length) {
+          smartAlerts.forEach(alert => {
+            if (alert.type === 'impersonation') {
+              analysisResult.reasons.push({ key: 'brand_impersonation', text: alert.message, points: 25, source: 'local' });
+            }
+            if (alert.type === 'sender') {
+              analysisResult.reasons.push({ key: 'sender_reports', text: alert.message, points: alert.count >= 3 ? 15 : 0, source: 'user' });
+            }
+          });
         }
+        // The shared layer produces the same score, evidence categories, source list,
+        // confidence and conservative verdict for every one of the six scanners.
+        if (window.SharedEvidenceEngine) analysisResult = window.SharedEvidenceEngine.finalize(analysisResult, inputType, contentToScan);
+        analysisResult.smartAlerts = smartAlerts;
+        this.lastScanSender = senderValue;
+        this.lastScanInputType = inputType;
 
         setTimeout(() => {
           this.displayResult(analysisResult, inputType, contentToScan);
@@ -3262,27 +4314,97 @@
 
         if (result.verdict === 'safe') {
           if (icon) icon.textContent = '🟢';
-          if (heading) heading.textContent = dict.verdictSafe || "Looks Safe";
+          if (heading) heading.textContent = `🟢 ${dict.verdictSafe || "Low Risk"}`;
           if (subtext) subtext.textContent = dict.verdictSafeSub || "We did not find common scam tricks, but always stay alert.";
         } else if (result.verdict === 'caution') {
           if (icon) icon.textContent = '🟡';
-          if (heading) heading.textContent = dict.verdictCaution || "Be Careful";
+          if (heading) heading.textContent = `🟡 ${dict.verdictCaution || "Suspicious"}`;
           if (subtext) subtext.textContent = dict.verdictCautionSub || "This has some unusual elements. Double check before proceeding.";
+        } else if (result.verdict === 'unable') {
+          if (icon) icon.textContent = '❔';
+          if (heading) heading.textContent = '❔ Unable to Verify';
+          if (subtext) subtext.textContent = 'There is not enough reliable evidence to decide. Please verify independently.';
         } else {
           if (icon) icon.textContent = '🔴';
-          if (heading) heading.textContent = dict.verdictDanger || "Looks Dangerous";
+          if (heading) heading.textContent = `🔴 ${dict.verdictDanger || "High Risk"}`;
           if (subtext) subtext.textContent = dict.verdictDangerSub || "This has strong signs of a cyber scam or phishing attempt.";
+        }
+
+        // URL scans get a configurable, explainable score. Other content types
+        // continue to show evidence without inventing a percentage.
+        const riskValue = document.getElementById('riskScoreValue');
+        const riskNote = document.getElementById('riskScoreNote');
+        const hasScore = result.scoreAvailable && Number.isFinite(result.score);
+        if (riskValue) riskValue.textContent = hasScore ? `${result.score}/100` : 'Unavailable';
+        if (riskNote) riskNote.textContent = hasScore
+          ? 'This score is based only on the evidence listed below. It is not proof and low risk is not a guarantee of safety.'
+          : 'No reliable score is available. Please verify independently.';
+        const confidenceValue = document.getElementById('confidenceValue');
+        const verificationValue = document.getElementById('verificationValue');
+        const sourcesValue = document.getElementById('sourcesValue');
+        if (confidenceValue) confidenceValue.textContent = Number.isFinite(result.confidence) ? `${result.confidence}% (evidence quality)` : 'Unavailable';
+        if (verificationValue) verificationValue.textContent = result.verificationStatus || 'Unable to verify from available sources.';
+        if (sourcesValue) sourcesValue.textContent = (result.sources || ['Local analysis']).join(' • ');
+
+        const evidenceBody = document.getElementById('evidenceDetailsBody');
+        if (evidenceBody) {
+          const categories = result.evidenceCategories;
+          if (categories) {
+            const labels = { local: 'Detected locally', external: 'Confirmed by external source', user: 'User reported', unknown: 'Unknown / unverified' };
+            evidenceBody.innerHTML = Object.entries(labels).map(([key, label]) => {
+              const values = categories[key] || [];
+              return `<section><strong>${label}</strong>${values.length ? `<ul>${values.map(item => `<li>${this.escapeHtml(item)}</li>`).join('')}</ul>` : '<p>None available.</p>'}</section>`;
+            }).join('') + '<p><strong>Important:</strong> Low risk is not a guarantee of safety.</p>';
+          } else {
+            const evidence = result.evidence || this.buildEvidence(result, inputType, rawContent);
+            evidenceBody.innerHTML = evidence.length ? `<ul>${evidence.map(item => `<li>${this.escapeHtml(item)}</li>`).join('')}</ul>` : '<p>No supported technical evidence was returned for this scan.</p>';
+          }
+        }
+        const breakdown = document.getElementById('scoreBreakdownBody');
+        if (breakdown) {
+          const parts = result.scoreBreakdown || [];
+          breakdown.innerHTML = parts.length
+            ? `<ul>${parts.map(part => `<li>${this.escapeHtml(part.label)}: <strong>+${this.escapeHtml(part.points)}</strong></li>`).join('')}</ul><p><strong>Total score:</strong> ${this.escapeHtml(result.score || 0)}/100.</p>`
+            : '<p>No score points were added. External threat-intelligence and machine-learning verification are unavailable.</p>';
+        }
+        const featureBody = document.getElementById('featureAnalysisBody');
+        if (featureBody) {
+          const f = result.features;
+          if (f && Object.keys(f).length) {
+            const items = [['URL length',f.url_length],['Domain length',f.domain_length],['Dots',f.num_dots],['Hyphens',f.num_hyphens],['Digits',f.num_digits],['Special characters',f.num_special_chars],['Subdomains',f.num_subdomains],['Uses HTTPS',f.has_https?'Yes':'No'],['Uses IP address',f.has_ip?'Yes':'No'],['Contains @',f.has_at_symbol?'Yes':'No'],['Suspicious words',f.suspicious_keyword_count],['Shortened link',f.shortened_url?'Yes':'No'],['Possible typo domain',f.typosquatting?'Yes':'No'],['Trusted domain',f.trusted_domain?'Yes':'No'],['Domain age',f.domain_age_days == null?'Not available':' '+f.domain_age_days+' days'],['Known malicious list',f.known_malicious?'Match found':'No configured match']];
+            featureBody.innerHTML=`<ul>${items.map(([name,value])=>`<li><strong>${this.escapeHtml(name)}:</strong> ${this.escapeHtml(value)}</li>`).join('')}</ul>`;
+          } else featureBody.textContent='Feature analysis is available for URL scans only.';
+        }
+
+        const smartAlerts = document.getElementById('smartAlerts');
+        if (smartAlerts) {
+          smartAlerts.innerHTML = '';
+          const alerts = result.smartAlerts || [];
+          smartAlerts.hidden = alerts.length === 0;
+          alerts.forEach(alert => {
+            const line = document.createElement('div');
+            line.className = 'smart-alert';
+            line.innerHTML = `<span class="smart-alert-icon">⚠️</span><span>${this.escapeHtml(alert.message || 'Additional safety signal detected.')}</span>`;
+            smartAlerts.appendChild(line);
+          });
         }
 
         // 2. Plain-Language Reasons
         const reasonsList = document.getElementById('reasonsList');
         if (reasonsList) {
           reasonsList.innerHTML = '';
-          result.reasons.forEach(r => {
+          const indicators = (result.reasons || []).filter(r => typeof r === 'object' && (r.points > 0 || r.key === 'url_invalid'));
+          if (!indicators.length) {
+            const li = document.createElement('li');
+            li.className = 'reason-item';
+            li.innerHTML = `<span class="reason-icon">ℹ️</span><span>No score-contributing risk indicator was identified from the information supplied.</span>`;
+            reasonsList.appendChild(li);
+          }
+          indicators.forEach(r => {
             const reasonKey = typeof r === 'string' ? r : r.key;
             const params = (typeof r === 'object' && r.params) ? r.params : {};
             const templateArr = dict[reasonKey] || I18N.en[reasonKey] || ["Suspicious pattern detected."];
-            let template = templateArr[personaIndex] || templateArr[0];
+            let template = (typeof r === 'object' && r.text) ? r.text : (templateArr[personaIndex] || templateArr[0]);
 
             if (params) {
               Object.keys(params).forEach(p => {
@@ -3293,7 +4415,7 @@
             const li = document.createElement('li');
             li.className = 'reason-item';
             li.innerHTML = `
-              <span class="reason-icon">${result.verdict === 'safe' ? '✅' : (result.verdict === 'caution' ? '⚠️' : '🚨')}</span>
+              <span class="reason-icon">${result.verdict === 'safe' ? '✅' : (result.verdict === 'caution' ? '⚠️' : (result.verdict === 'unable' ? '❔' : '🚨'))}</span>
               <span>${this.escapeHtml(template)}</span>
             `;
             reasonsList.appendChild(li);
@@ -3312,18 +4434,48 @@
           if (actionText) actionText.textContent = (dict.action_safe && dict.action_safe[personaIndex]) || dict.action_safe[0];
         } else if (result.verdict === 'caution') {
           if (actionIcon) actionIcon.textContent = '⚠️';
-          if (actionText) actionText.textContent = (dict.action_caution && dict.action_caution[personaIndex]) || dict.action_caution[0];
+          const sensitiveRequest = (result.reasons || []).some(r => ['reason_otp_pin', 'reason_upi_scam', 'brand_impersonation'].includes(r.key));
+          if (actionText) actionText.textContent = sensitiveRequest
+            ? 'Do not provide passwords, OTPs, banking details, or payment information until you verify this through an official channel.'
+            : 'Verify independently before you act. Use an official website, app, or contact number rather than replying to this message.';
+        } else if (result.verdict === 'unable') {
+          if (actionIcon) actionIcon.textContent = '🔎';
+          if (actionText) actionText.textContent = 'Do not enter passwords, OTPs, banking information, or payment details until you verify the sender or website through an official channel.';
         } else {
           if (actionIcon) actionIcon.textContent = '🛑';
           if (actionText) actionText.textContent = (dict.action_danger && dict.action_danger[personaIndex]) || dict.action_danger[0];
         }
 
-        // Save check to Cloud Firestore & LocalStorage
+        // Save check to Supabase & LocalStorage
         this.saveCheckRecord(result, inputType, rawContent);
 
         if (resultContainer && typeof resultContainer.scrollIntoView === 'function') {
           resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+      }
+
+      buildEvidence(result, inputType, rawContent) {
+        const evidence = [];
+        (result.reasons || []).forEach(reason => {
+          const key = typeof reason === 'string' ? reason : reason.key;
+          const params = (typeof reason === 'object' && reason.params) || {};
+          const paramText = Object.entries(params).map(([k,v]) => `${k.toLowerCase()}: ${v}`).join(', ');
+          const labels = {
+            reason_http_insecure:'Website uses HTTP instead of HTTPS', reason_ip_address:'URL uses a raw IP address',
+            reason_at_trick:'URL contains an @ address-masking pattern', reason_risky_tld:'Unusual domain ending',
+            reason_brand_bait:'Brand/login-related wording detected', reason_hyphens_subdomains:'Long or hyphenated domain pattern',
+            reason_shortener:'Shortened URL detected', reason_danger_file:'Direct executable/app download link detected',
+            reason_urgency:'Urgency or threat wording detected', reason_otp_pin:'OTP, PIN, password, or payment request detected',
+            reason_lottery_bait:'Prize, job, or unrealistic-money wording detected', reason_gov_impersonation:'Government/utility impersonation wording detected',
+            reason_upi_scam:'UPI payment destination detected', reason_phone_link_combo:'Phone number combined with a link detected', reason_generic_greeting:'Generic greeting detected'
+          };
+          if (typeof reason === 'object' && reason.text) evidence.push(reason.text);
+          else if (labels[key]) evidence.push(`${labels[key]}${paramText ? ` (${paramText})` : ''}.`);
+        });
+        (result.smartAlerts || []).forEach(alert => { if (alert.message) evidence.push(alert.message); });
+        if (inputType === 'email') { const sender = String(rawContent || '').match(/from\s*:\s*([^\n]+)/i); if (sender) evidence.push(`Email sender supplied: ${sender[1].trim()}.`); }
+        if (inputType === 'qr' && rawContent) evidence.push(`QR destination decoded: ${String(rawContent).slice(0, 180)}.`);
+        return [...new Set(evidence)].slice(0, 8);
       }
 
       resetScanner() {
@@ -3381,6 +4533,8 @@
         if (this.history.length === 0) {
           const dict = I18N[this.currentLang] || I18N.en;
           listEl.innerHTML = `<div class="history-empty">${dict.historyEmpty || "Your recent checks will appear here."}</div>`;
+          const fullList = document.getElementById('historyViewList');
+          if (fullList) fullList.innerHTML = '<div class="history-empty"><div class="empty-illustration">🕒</div>No checks yet — your recent scans will appear here.</div>';
           return;
         }
 
@@ -3414,6 +4568,32 @@
             </div>
           `;
         }).join('');
+        const fullList = document.getElementById('historyViewList');
+        if (fullList) fullList.innerHTML = listEl.innerHTML || '<div class="history-empty">No checks yet — your recent scans will appear here.</div>';
+      }
+
+      updateSafetyScore() {
+        const since = new Date(); since.setDate(since.getDate() - 30);
+        const count = this.history.filter(item => item.verdict === 'danger' && (!item.created_at || new Date(item.created_at) >= since)).length;
+        const score = document.getElementById('safetyScore'); if (score) score.textContent = count;
+      }
+
+      async loadDailyAlert() {
+        if (localStorage.getItem('cybershield_daily_alert_dismissed') === new Date().toDateString() || !this.supabase || !this.currentUser) return;
+        try {
+          const since = new Date(Date.now() - 86400000).toISOString();
+          const { data } = await this.supabase.from('reports').select('text, confirm_count, created_at').gte('created_at', since).order('confirm_count', { ascending:false }).limit(1);
+          if (data && data[0]) { document.getElementById('dailyAlertText').textContent = `⚠️ Most reported scam today: ${String(data[0].text).slice(0,95)}`; document.getElementById('dailyAlert').classList.add('show'); }
+        } catch (_) {}
+      }
+
+      dismissDailyAlert() { localStorage.setItem('cybershield_daily_alert_dismissed', new Date().toDateString()); document.getElementById('dailyAlert').classList.remove('show'); }
+
+      showOnboarding() {
+        if (localStorage.getItem('cybershield_onboarded')) return;
+        const modal = document.createElement('div'); modal.className='modal-overlay active'; modal.id='onboardingModal';
+        let slide=0; const slides=[['🛡️','Check before you click','Paste a link, message, email, QR code, or social-media DM.'],['🔍','See clear safety signals','Cyber Shield explains suspicious signs in simple language.'],['🤝','Protect others too','Share a warning and report scams to help your community.']];
+        const render=()=>{const s=slides[slide];modal.innerHTML=`<div class="modal-card"><div class="modal-header"><div class="modal-icon">${s[0]}</div><h2 class="modal-title">${s[1]}</h2><p class="modal-subtitle">${s[2]}</p></div><div class="onboard-dots">${slides.map((_,i)=>`<i class="${i===slide?'active':''}"></i>`).join('')}</div><div class="modal-actions"><button class="btn-secondary" id="onSkip">Skip</button><button class="btn-primary" id="onNext">${slide===2?'Get started':'Next'}</button></div></div>`;modal.querySelector('#onSkip').onclick=close;modal.querySelector('#onNext').onclick=()=>{slide===2?close():(slide++,render())};}; const close=()=>{localStorage.setItem('cybershield_onboarded','true');modal.remove();this.openPersonaModal();};render();document.body.appendChild(modal);
       }
 
       /* ---------------- LEARN TAB RENDERING ---------------- */
@@ -3462,13 +4642,13 @@
 
         this.switchMainView('scanner');
 
-        if (example.type === 'link') {
+        if (example.type === 'link' || example.type === 'web') {
           this.switchInputTab('link');
           const input = document.getElementById('linkInput');
           if (input) input.value = example.sampleText;
-        } else if (example.type === 'msg') {
-          this.switchInputTab('msg');
-          const input = document.getElementById('msgInput');
+        } else if (example.type === 'msg' || example.type === 'email' || example.type === 'social') {
+          this.switchInputTab(example.type);
+          const input = document.getElementById(`${example.type}Input`);
           if (input) input.value = example.sampleText;
         } else if (example.type === 'qr') {
           this.switchInputTab('qr');
@@ -3511,6 +4691,21 @@
     let app = null;
     document.addEventListener('DOMContentLoaded', () => {
       app = new CyberShieldApp();
+      const cursorCircle = document.createElement('div');
+      cursorCircle.className = 'cursor-circle';
+      cursorCircle.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(cursorCircle);
+      document.addEventListener('mousemove', event => {
+        cursorCircle.style.left = `${event.clientX}px`;
+        cursorCircle.style.top = `${event.clientY}px`;
+        cursorCircle.classList.add('visible');
+      });
+      document.addEventListener('mouseleave', () => cursorCircle.classList.remove('visible'));
+      document.addEventListener('click', () => {
+        cursorCircle.classList.remove('clicking');
+        void cursorCircle.offsetWidth;
+        cursorCircle.classList.add('clicking');
+      });
     });
   </script>
 </body>
